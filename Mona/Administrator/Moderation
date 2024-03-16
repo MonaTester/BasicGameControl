@@ -1,0 +1,114 @@
+local players = game:GetService("Players")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local serverStorage = game:GetService("ServerStorage")
+
+
+
+local moderators = {
+	[103551817] = true, --lee
+	[111184788] = true, --orange_juice
+	[43564517] = true,	--sagee4
+	[40741235] = true,	--kar_mah
+	[15003074] = true,	--jeresey
+	[400013404] = true, --jeresey alt
+	[109603112] = true,	--warmth
+	[130718770] = true, --rize
+}
+
+local function ban(player, spectating)
+	if moderators[player.UserId] then
+		if players:FindFirstChild(spectating) then
+			if replicatedStorage[".stats"]:FindFirstChild(players[spectating].Name) then
+				if replicatedStorage[".stats"][players[spectating].Name].Banned.Value == false then
+					replicatedStorage[".stats"][players[spectating].Name].Banned.Value = true
+				end
+			end
+			local info = {
+				["embeds"] = {{
+					["title"] = string.upper(players[spectating].Name),
+					["description"] = string.upper("banned by "..player.Name),
+					["timestamp"] = os.time,
+					["url"] = "https://www.roblox.com/users/"..players[spectating].UserId.."/profile",
+					["thumbnail"] = {
+						["url"] = "https://www.roblox.com/Thumbs/Avatar.ashx?x=100&y=100&Format=Png&username="..players[spectating].Name,
+					},
+					["color"] = 000000,
+				}}
+			}
+			local infoData = game:GetService("HttpService"):JSONEncode(info)
+			game:GetService("HttpService"):PostAsync("https://discordapp.com/api/webhooks/679793334537158670/JZIZic4zZVPtSi0SBdRnAVsysvGPx00PYt7Y6a4hr36UhrQYI5V6W8nWZ8OOyAMhP_CD", infoData)
+		end
+	end
+end
+replicatedStorage.Remotes.ban.OnServerEvent:Connect(ban)
+
+local function unban(player, id)
+	if moderators[player.UserId] then
+		_G.UnbanPlayer(tostring(id))
+		local info = {
+			["embeds"] = {{
+				["title"] = string.upper(id),
+				["description"] = string.upper("unbanned by "..player.Name),
+				["timestamp"] = os.time,
+				["url"] = "https://www.roblox.com/users/"..id.."/profile",
+				thumbnail = {
+						["url"] = "https://www.roblox.com/Thumbs/Avatar.ashx?x=100&y=100&Format=Png&username="..getUsernameFromUserId,
+					},
+				["color"] = 000000,
+			}}
+		}
+		local infoData = game:GetService("HttpService"):JSONEncode(info)
+		game:GetService("HttpService"):PostAsync("https://discordapp.com/api/webhooks/679793334537158670/JZIZic4zZVPtSi0SBdRnAVsysvGPx00PYt7Y6a4hr36UhrQYI5V6W8nWZ8OOyAMhP_CD", infoData)
+	end
+end
+replicatedStorage.Remotes.unban.OnServerEvent:Connect(unban)
+
+local function bannotingame(player, id)
+	if moderators[player.UserId] then
+		_G.BanPlayer(tostring(id))
+		local info = {
+			["embeds"] = {{
+				["title"] = string.upper(id),
+				["description"] = string.upper("banned by "..player.Name),
+				["timestamp"] = os.time,
+				["url"] = "https://www.roblox.com/users/"..id.."/profile",
+				["thumbnail"] = {
+						["url"] = "https://www.roblox.com/Thumbs/Avatar.ashx?x=100&y=100&Format=Png&username="..getUsernameFromUserId,
+					},
+				["color"] = 000000,
+			}}
+		}
+		local infoData = game:GetService("HttpService"):JSONEncode(info)
+		game:GetService("HttpService"):PostAsync("https://discordapp.com/api/webhooks/679793334537158670/JZIZic4zZVPtSi0SBdRnAVsysvGPx00PYt7Y6a4hr36UhrQYI5V6W8nWZ8OOyAMhP_CD", infoData)
+	end
+end
+replicatedStorage.Remotes.bannotingame.OnServerEvent:Connect(bannotingame)
+
+local function checkModerators(player)
+	if player and not player:FindFirstChild("Death") then
+		if moderators[player.UserId] then
+			if not player:WaitForChild("PlayerGui"):FindFirstChild("moderationMenu") then
+				local moderationMenu = serverStorage:WaitForChild("moderationMenu", 1):Clone()
+				moderationMenu.Parent = player:WaitForChild("PlayerGui")
+				moderationMenu.handler.Disabled = false
+			end
+		end
+	end
+end
+
+local function checkBan(player)
+	if replicatedStorage[".stats"]:FindFirstChild(player.Name) then
+		if replicatedStorage[".stats"][player.Name].Banned.Value == true then
+			player:Kick("BANNED")
+		end
+	end
+end
+
+spawn(function()
+	while wait(2.5) do
+	    for _, player in pairs(players:GetPlayers()) do
+	        checkBan(player)
+			checkModerators(player)
+	    end
+	end
+end)

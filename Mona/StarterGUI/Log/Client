@@ -1,0 +1,27 @@
+local console = script.Parent.Console
+local buttons = console.Buttons
+local clearconsole = buttons.ClearConsole
+local updateconsole = buttons.UpdateConsole
+local exit = buttons.Exit
+
+local logservice = require(script.Parent)
+
+clearconsole.MouseButton1Click:Connect(function()
+	logservice.ClearConsole()
+end)
+updateconsole.MouseButton1Click:Connect(function()
+	logservice.UpdateConsole()
+end)
+exit.MouseButton1Click:Connect(function()
+	console.Enabled = false
+end)
+
+local uis = game:GetService("UserInputService")
+uis.InputBegan:Connect(function(input,gpe)
+	if gpe then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.BackSlash then
+		console.Enabled = not console.Enabled
+	end
+end)

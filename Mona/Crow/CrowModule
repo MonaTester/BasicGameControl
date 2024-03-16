@@ -1,0 +1,80 @@
+local module = {}
+
+module.FlyToPlayer = function(c)
+	local targ = c.Creator.Value
+	if not targ then
+		return
+	end
+	local root = c.HumanoidRootPart
+	root.BodyPosition.Position = targ.HumanoidRootPart.CFrame * CFrame.new(-2.5,2,1).p
+	root.BodyGyro.CFrame = targ.HumanoidRootPart.CFrame * CFrame.new(root.Position,targ.HumanoidRootPart.Position)-- * CFrame.Angles(0,math.rad(-90),0)
+end
+module.Mount = function(c)
+	local targ = c.Creator.Value
+	if not targ then
+		return
+	end
+	c.Mounted.Value = true
+	local root = c.HumanoidRootPart
+	root.BodyPosition.MaxForce = Vector3.new(0,0,0)
+	root.BodyGyro.MaxTorque = Vector3.new(0,0,0)
+	
+	local weld = Instance.new("Weld")
+	weld.Part0 = root
+	weld.Part1 = targ.Torso
+	weld.C0 = CFrame.new(.9,-1.25,0)
+	weld.Parent = root
+end
+module.Unmount = function(c)
+	local targ = c.Creator.Value
+	if not targ then
+		return
+	end
+	c.Mounted.Value = false
+	local root = c.HumanoidRootPart
+	if root:FindFirstChildWhichIsA("Weld") then
+		root:FindFirstChildWhichIsA("Weld"):Destroy()
+	end
+	root.BodyPosition.MaxForce = Vector3.new(math.huge,math.huge,math.huge)
+	root.BodyGyro.MaxTorque = Vector3.new(math.huge,math.huge,math.huge)
+end
+module.Reveal = function(c)
+	if c:FindFirstChildWhichIsA("ClickDetector") then
+		c:FindFirstChildWhichIsA("ClickDetector").MaxActivationDistance = 8
+	end
+	for a,b in pairs(c:GetChildren()) do
+		if b.Name ~= "HumanoidRootPart" and (b.ClassName == "MeshPart" or b.ClassName == "Part" or b.ClassName == "UnionOperation") then
+			b.Transparency = 0
+		end
+	end
+end
+module.Hide = function(c)
+	if c:FindFirstChildWhichIsA("ClickDetector") then
+		c:FindFirstChildWhichIsA("ClickDetector").MaxActivationDistance = 0
+	end
+	for a,b in pairs(c:GetChildren()) do
+		if b.Name ~= "HumanoidRootPart" and (b.ClassName == "MeshPart" or b.ClassName == "Part" or b.ClassName == "UnionOperation") then
+			b.Transparency = 1
+		end
+	end
+end
+module.UpdateAnimations = function(c)
+	local hum = c.AnimationController
+	local state = c.State
+	for a,b in pairs(hum:GetPlayingAnimationTracks()) do
+		b:Stop()
+	end
+	local animTrack
+	if state.Value == "Flying" then
+		animTrack = hum:LoadAnimation(script.Fly)
+	end
+	if state.Value == "FlyingAway" then
+		animTrack = hum:LoadAnimation(script.Fly)
+	end
+	if state.Value == "Mounted" then
+		animTrack = hum:LoadAnimation(script.Mounted)
+	end
+	animTrack:Play()
+end
+
+return module

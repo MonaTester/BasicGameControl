@@ -1,0 +1,78 @@
+local Blacklist = {}
+
+local WipeModule = require(game.ServerScriptService.Modules.WipeModule)
+local Prefix = "!"
+
+game.Players.PlayerAdded:Connect(function(player)
+	if game.ServerStorage.ServerLocked.Value == true then
+		player:Kick("This server is locked.")
+	end
+	for i = 1, #Blacklist do
+		if player.Name == Blacklist[i] or player.UserId == Blacklist[i] then
+			player:Kick("You have been blacklisted. Have a nice day.")
+		end
+	end
+	if _G.IsAdmin(player) then
+		local restore = script.Restore:Clone()
+		restore.Parent = player:WaitForChild("PlayerGui")
+	end
+	player.Chatted:Connect(function(message)
+		local IsAdmin = _G.IsAdmin(player)
+		if IsAdmin == true then
+		local WipeCommand = string.gsub(message,Prefix.."wipe ","")
+		if WipeCommand and game.Players:FindFirstChild(WipeCommand) then
+			local plr = game.Players:FindFirstChild(WipeCommand)
+			WipeModule.WipePlayer(plr)
+		end
+		
+		local BanCommand = string.gsub(message,Prefix.."ban ","")
+		if BanCommand and game.Players:FindFirstChild(BanCommand) then
+			local plr = game.Players:FindFirstChild(BanCommand)
+			if not _G.IsAdmin(plr) and game.CreatorId ~= plr.UserId then
+			_G.BanPlayer(plr)
+			end
+		end
+		
+		local UnBanCommand = string.gsub(message,Prefix.."unban ","")
+		if UnBanCommand then
+			local id = UnBanCommand
+			_G.UnbanPlayer(id)
+		end
+		
+		local MaxStat = string.gsub(message,Prefix.."maxstats ","")
+		if MaxStat then
+			local stats = game.ReplicatedStorage[".stats"]:FindFirstChild(MaxStat)
+			if stats then
+			stats.DemonKills.Value = 999
+			stats.SlayerKills.Value = 999
+			stats.Yen.Value = 9999999
+			stats.DemonKills.Value = 999
+			stats.FistExp.Value = 9999
+			stats.SwordExp.Value = 9999
+			stats.BreathingExp.Value = 300
+			end
+		end
+		
+		local tool = string.gsub(message,Prefix.."giveall ","")
+		if tool then
+			local plr = game.Players:FindFirstChild(tool)
+			if plr then
+			for a,b in pairs(game.ServerStorage.Tools.Demon:GetChildren()) do
+				b:Clone().Parent = plr.Backpack
+			end
+			for a,b in pairs(game.ServerStorage.Tools.Slayer:GetChildren()) do
+				b:Clone().Parent = plr.Backpack
+			end
+			end
+		end
+		
+		if message == "!slock" then
+			game.ServerStorage.ServerLocked.Value = true
+		end
+		if message == "!sunlock" then
+			game.ServerStorage.ServerLocked.Value = false
+		end
+		
+		end
+	end)
+end)

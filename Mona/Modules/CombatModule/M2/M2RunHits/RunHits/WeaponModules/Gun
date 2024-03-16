@@ -1,0 +1,169 @@
+local module = {}
+function sub(...)
+	coroutine.wrap(...)()
+end
+return function(character,blade,DMG)
+	local humanoid = character:WaitForChild("Humanoid")
+	local root = character:WaitForChild("HumanoidRootPart")
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	if character:FindFirstChild("CombatDisable") then
+		return
+	end
+	if not blade then
+		return
+	end
+	if humanoid.Health < 1 then
+		return
+	end
+	if character.Breathing.Value < 5 then
+		return
+	end
+	character.Breathing.Value = character.Breathing.Value - 5
+	local damage = 8
+	if DMG then
+		damage = DMG
+	end
+	local TagHumanoid = require(game.ServerScriptService.Modules.TagHumanoid)
+	
+	local CDTime = .1
+	local AnimationSpeed = 1
+	local Delay = .2
+	local CD = Instance.new("BoolValue")
+	CD.Name = "CombatDisable"
+	CD.Parent = character
+	
+	local Attack = Instance.new("BoolValue")
+	Attack.Name = "Attacking"
+	Attack.Parent = character
+	game.Debris:AddItem(Attack,CDTime + .2)
+	
+	local player = game.Players:GetPlayerFromCharacter(character)
+	
+	local NoJump = Instance.new("NumberValue")
+	NoJump.Name = "NoJump"
+	NoJump.Parent = character.Effects
+	
+	local Anim = humanoid:LoadAnimation(script:FindFirstChild("Fire"))
+	Anim:Play()
+	Anim:AdjustSpeed(.7)
+	
+	wait(0.05)
+	game.Debris:AddItem(CD, CDTime)
+	game.Debris:AddItem(NoJump,CDTime + .2)
+	
+	wait(Delay)
+	Anim:AdjustSpeed(1)
+	root.Gun:Play()
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	
+	local spread = .5
+	local SPREAD = CFrame.Angles(math.rad(math.random(-spread, spread)), math.rad(math.random(-spread, spread)), 0)
+	
+	blade.Smoke:Emit(3)
+	blade.Sparks:Emit(20)
+	blade.SparkLight.Enabled = true
+	sub(function()
+		wait(CDTime - Delay)
+		blade.SparkLight.Enabled = false
+	end)
+	local mouse = game.ReplicatedStorage.Remotes.GetMouse:InvokeClient(player)
+		--local sprd = CFrame.new(math.random(-spread,spread),math.random(-spread,spread),0)
+	local bullet = Instance.new("Part")
+	bullet.Anchored = false
+	bullet.CanCollide = false
+	bullet.Size = Vector3.new(.05,.05,12.5)
+	bullet.Material = "Neon"
+	bullet.BrickColor = BrickColor.new("Bright yellow")
+	bullet.CFrame = CFrame.new(blade.Position,mouse.p)-- * CFrame.Angles(math.rad(math.random(-spread, spread)), math.rad(math.random(-spread, spread)), 0)
+	--bullet.CFrame = bullet.CFrame * SPREAD
+	--bullet.Position = blade.Position
+	bullet.Parent = workspace.Projectiles
+	game.Debris:AddItem(bullet,.6)
+	
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1,1,1)*math.huge
+	bv.Velocity = bullet.CFrame.lookVector * 250-- CFrame.new(root.Position,mouse.p).lookVector * 300 --bullet.CFrame.lookVector * 250
+	bv.Parent = bullet
+	
+	local light = blade.SparkLight:Clone()
+	light.Parent = bullet
+	light.Enabled = true
+	bullet:SetNetworkOwner(player)
+	local function explodeBullet()
+		bullet.Anchored = true
+		local p = Instance.new("Part")
+		p.CFrame = bullet.CFrame
+		p.Size = Vector3.new(1,1,1)
+		p.Transparency = 1
+		p.Anchored = true
+		p.CanCollide = false
+		p.Parent = workspace.Effects
+		local spark = blade.Sparks:Clone()
+		spark.Parent = p
+		spark:Emit(20)
+		
+		local light = blade.SparkLight:Clone()
+		light.Parent = p
+		light.Enabled = true
+		game.Debris:AddItem(light,.4)
+		bullet:Destroy()
+	end--]]
+	t = bullet.Touched:Connect(function(hit)
+		local ehum = hit.Parent:FindFirstChild("Humanoid") or hit.Parent.Parent:FindFirstChild("Humanoid")
+		if ehum and not ehum:IsDescendantOf(character) then
+			t:disconnect()
+			bullet:Destroy()
+			--explodeBullet()
+			local target = ehum.Parent
+			local eroot = target.HumanoidRootPart
+			local playStun
+			for i, v in pairs(eroot:GetChildren()) do
+				if v.ClassName == "BodyVelocity" then
+					v:Destroy()
+				end
+			end
+			local d = (eroot.Position - root.Position).unit
+			
+			local push = Instance.new("BodyVelocity")
+			push.MaxForce = Vector3.new(1,0,1) * 30000
+			push.Velocity = d * 16
+			push.Parent = eroot
+			
+			--[[local pull = Instance.new("BodyVelocity")
+			pull.MaxForce = Vector3.new(1,0,1) * 30000
+			pull.Velocity = d * 16
+			pull.Parent = root--]]
+			
+			if target:FindFirstChild("Blocking") then
+				if ((eroot.Position + eroot.CFrame.lookVector * -3.5) - root.Position).magnitude <= 5 then
+					target:FindFirstChild("Blocking"):Destroy()
+				else
+					
+					game.Debris:AddItem(push, .23)	
+					--game.Debris:AddItem(pull, .23)	
+				
+					TagHumanoid(character,target,{damage, .4, true}, playStun)
+					return
+				end
+			end
+			
+			if player then
+				local stats = game.ReplicatedStorage[".stats"]:WaitForChild(player.Name)
+				if game:GetService("ReplicatedStorage").events:FindFirstChild("doubleExperience") then
+					stats.SwordExp.Value = stats.SwordExp.Value + (3 * 2)
+				else
+					stats.SwordExp.Value = stats.SwordExp.Value + 3
+				end
+			end
+			game.Debris:AddItem(push, .23)	
+			--game.Debris:AddItem(pull, .23)	
+			eroot.Slash:Emit(3)
+			target.HumanoidRootPart:FindFirstChild("Slash"..math.random(1,3)):Play()
+			TagHumanoid(character,target,{damage, .5, true}, playStun)
+		end
+	end)
+end

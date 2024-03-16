@@ -1,0 +1,160 @@
+local Gamepasses = {
+	["UrokodakiMask"] = {GamepassId = 7885286;};
+	["ToxicEmotes"] = {GamepassId = 8208066;};
+}
+local GamepassService = game:GetService("MarketplaceService")
+
+local Remotes = game.ReplicatedStorage.Remotes
+
+local emotes = {
+	garbage = "rbxassetid://4666261781",
+	clown = "rbxassetid://4666292195",
+	spit = "rbxassetid://4666310732",
+	spit2 = "rbxassetid://4666319119",
+};
+
+local emoteSounds = {
+	garbage = "rbxassetid://743953262",
+	clown = "rbxassetid://3341572978",
+	spit = "rbxassetid://1370363170",
+	spit2 = "rbxassetid://1370363170",
+};
+
+Remotes.WearUrokodakiMask.OnServerEvent:Connect(function(player)
+	if GamepassService:UserOwnsGamePassAsync(player.UserId,Gamepasses.UrokodakiMask.GamepassId) then
+		if player.Character:FindFirstChild("U_Mask") then
+			player.Character:FindFirstChild("U_Mask"):Destroy()
+			local Mask = game.ServerStorage.UrokodakiMask2:Clone()
+			Mask.Name = "U_Mask2"
+			Mask.Parent = player.Character
+			return
+		elseif player.Character:FindFirstChild("U_Mask2") then
+			player.Character:FindFirstChild("U_Mask2"):Destroy()
+			local Mask = game.ServerStorage.UrokodakiMask:Clone()
+			Mask.Name = "U_Mask"
+			Mask.Parent = player.Character
+			return
+		else			
+			local Mask = game.ServerStorage.UrokodakiMask:Clone()
+			Mask.Name = "U_Mask"
+			Mask.Parent = player.Character
+			return
+		end
+	end
+end)
+
+game.Players.PlayerAdded:Connect(function(player)
+	player.CharacterAdded:Connect(function(character)
+		if GamepassService:UserOwnsGamePassAsync(player.UserId,Gamepasses.UrokodakiMask.GamepassId) then
+			local Mask = game.ServerStorage.UrokodakiMask:Clone()
+			Mask.Name = "U_Mask"
+			Mask.Parent = character
+		end
+		if GamepassService:UserOwnsGamePassAsync(player.UserId,Gamepasses.ToxicEmotes.GamepassId) then
+			player.Chatted:Connect(function(message)
+				if message:sub(1, 3) == "/e " and emotes[message:sub(4)] and not character:FindFirstChild("emote") then
+					local animation = Instance.new("Animation", character)
+					animation.Name = "emote"
+					animation.AnimationId = emotes[message:sub(4)]
+					local emote = character.Humanoid:LoadAnimation(animation)
+					local sound
+					if emote then
+						if not emote.IsPlaying then
+							emote:Play()
+							sound = Instance.new("Sound", character.HumanoidRootPart)
+							sound.SoundId = emoteSounds[message:sub(4)]
+							if message:sub(4) == "spit" or message:sub(4) == "spit2" then
+								sound.Looped = false
+								game.Debris:AddItem(sound, 2.5)
+								spawn(function()
+									if character.Head then
+										wait(0.3)
+										character.Head.spitPart[message:sub(4)].Enabled = true
+										wait(0.125)
+										character.Head.spitPart[message:sub(4)].Enabled = false
+									end
+									animation:Destroy()
+								end)
+							else
+								sound.Looped = true
+							end
+							sound:Play()
+						end
+						spawn(function()
+							local originalPosition = character.HumanoidRootPart.Position
+							repeat
+								wait()
+							until (character.HumanoidRootPart.Position - originalPosition).magnitude > 1
+							emote:Stop()
+							if sound then
+								sound:Destroy()
+							end
+							if animation then
+								animation:Destroy()
+							end
+						end)
+					end
+				end
+			end)
+		end
+	end)
+end)
+local marketplaceService = game:GetService("MarketplaceService")
+
+local WipeModule = require(game.ServerScriptService.Modules.WipeModule)
+
+local function proccesReceipt(receiptInfo)
+    local playerid = receiptInfo.PlayerId
+    local assetId = receiptInfo.ProductId
+    if assetId == 950730010 then
+        for _, child in pairs(game:GetService("Players"):GetPlayers()) do
+            if child.UserId == playerid then
+                local player = child
+                WipeModule.WipePlayer(player)
+            end
+        end
+	elseif assetId == 951465298 then
+        for _, child in pairs(game:GetService("Players"):GetPlayers()) do
+            if child.UserId == playerid then
+                local player = child
+				local stats = game.ReplicatedStorage[".stats"]:WaitForChild(player.Name)
+				stats.KatanaColor.Value = tostring(BrickColor.random())
+				stats.SheatheColor.Value = tostring(BrickColor.random())
+				stats.GripColor.Value = tostring(BrickColor.random())
+            end
+        end
+	elseif assetId == 951466280 then
+        for _, child in pairs(game:GetService("Players"):GetPlayers()) do
+            if child.UserId == playerid then
+                local player = child
+				local stats = game.ReplicatedStorage[".stats"]:WaitForChild(player.Name)
+				local Traits = require(script.Parent.Server.Traits)
+				stats.Trait.Value = Traits[math.random(1,#Traits)]
+				for _, child in pairs(game.ServerStorage.Tools.Demon:GetChildren()) do
+					if stats.Tools:FindFirstChild(child.Name) then
+						wait(0.125)
+						stats.Tools:FindFirstChild(child.Name):Destroy()
+					end
+				end
+				wait(1)
+				player:LoadCharacter()
+            end
+        end
+    end 
+    return Enum.ProductPurchaseDecision.PurchaseGranted
+end
+marketplaceService.ProcessReceipt = proccesReceipt
+
+--[[game:GetService("ReplicatedStorage").Remotes.freeWipe.OnServerEvent:Connect(function(player)
+	local stats = game.ReplicatedStorage[".stats"]:FindFirstChild(player.Name)
+	if not stats then
+		return
+	end
+	if stats.usedFreeWipe.Value == true then
+		return
+	end
+	if stats.usedFreeWipe.Value == false then
+		stats.usedFreeWipe.Value = true
+		WipeModule.WipePlayer(player)
+	end
+end)]]

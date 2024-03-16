@@ -1,0 +1,418 @@
+local module = {}
+local marketplaceService = game:GetService("MarketplaceService")
+local Player = game.Players.LocalPlayer
+local Stats = game.ReplicatedStorage[".stats"]:WaitForChild(Player.Name)
+function module:StartText(TextString,Label,GUI,npcName,Outfit,Item,ItemArguments)
+	if Player.Character:FindFirstChild("InDialogue") then
+		return
+	end
+	if not npcName then
+		return
+	end
+	
+	local Buttons = {}
+	local TextButtons = {}
+	local Failed = false
+	
+	local InDialogue = Instance.new("BoolValue")
+	InDialogue.Name = "InDialogue"
+	InDialogue.Parent = Player.Character
+	
+	local function CreateButton()
+		
+		--[[local Button = Instance.new("TextButton")
+		Button.Name = "b_Response"
+		Button.BackgroundTransparency = .5
+		Button.BackgroundColor3 = Color3.fromRGB(73,74,74)
+		Button.BorderSizePixel = 1
+		Button.TextScaled = true
+		Button.TextColor3 = Color3.fromRGB(255,255,255)
+		Button.TextStrokeColor3 = Color3.fromRGB(0,0,0)
+		Button.TextStrokeTransparency = 0.9
+		Button.Font = Enum.Font.Fantasy]]
+		local Button = script.b_Response:Clone()
+		
+		return Button
+	end
+	
+	for a = 1, #TextString do
+		Buttons = {}
+		
+		local Responded = false
+		local Break = false
+		
+		local String = TextString[a].Message
+		local Choices = TextString[a].Choices
+		
+		for g = 1, #TextButtons do
+			TextButtons[g]:Destroy()
+		end
+		
+		--[[if (Stats.DemonKills.Value >= 15 or Stats.CompletedQuests:FindFirstChild("UrokodakiQuest")) and npcName == "Urokodaki" then
+			CompletedDemonQuest = true
+			String = TextString[a].Complete
+			Choices = TextString[a].CompleteChoices
+		end--]]
+		
+		-- yen check --
+		
+		if npcName == "Urokodaki" and Stats.Yen.Value < 35 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "KyojuroRengoku" and Stats.Yen.Value < 35 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "Jigoro" and Stats.Yen.Value < 35 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "Inosuke" and Stats.Yen.Value < 35 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "SanemiShinazugawa" and Stats.Yen.Value < 25 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "MuichiroTokito" and Stats.Yen.Value < 30 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "ShinobuKocho" and Stats.Yen.Value < 40 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "TengenUzui" and Stats.Yen.Value < 40 and a == 3 then
+			Failed = true
+		end
+		
+		if npcName == "Snake" and Stats.Yen.Value < 50 and a == 3 then
+			Failed = true
+		end
+		
+		-- stats check --
+		
+		if npcName == "Tailor" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or not marketplaceService:UserOwnsGamePassAsync(Player.UserId, 8202523)) then
+			Failed = true
+		end
+		
+		if npcName == "Tailor2" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or not marketplaceService:UserOwnsGamePassAsync(Player.UserId, 8202523)) then
+			Failed = true
+		end
+		
+		if npcName == "Corps Recruiter" and Stats.Alignment.Value == "Demon" then
+			Failed = true
+		end
+		
+		if npcName == "Host" then
+			if (Stats.Alignment.Value ~= "Demon" or (game.Lighting.ClockTime <= 6 or game.Lighting.ClockTime >= 18.5)) then
+				
+			elseif Stats.Alignment.Value == "Demon" then
+				Failed = true
+			else
+				Failed = true	
+			end
+		end
+		
+		if npcName == "Host2" and (not game.Players.LocalPlayer.Character:FindFirstChild("PassedFS")) then
+			Failed = true
+		end
+		
+		if npcName == "Inosuke" and (Stats.FistExp.Value < 250) then
+			Failed = true
+		end
+		
+		if npcName == "Urokodaki" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.DemonKills.Value < 5 or Stats.DestroyedBoulder.Value == false) then
+			Failed = true
+		end
+		
+		if npcName == "Jigoro" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 2000 or Stats.DemonKills.Value < 5) then
+			Failed = true
+		end
+		
+		if npcName == "KyojuroRengoku" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 2000 or Stats.DemonKills.Value < 5) then
+			Failed = true
+		end
+		
+		if npcName == "SanemiShinazugawa" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 2000 or Stats.DemonKills.Value < 15) then
+			Failed = true
+		end
+		
+		if npcName == "MuichiroTokito" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 2000 or Stats.DemonKills.Value < 15) then
+			Failed = true
+		end
+		
+		if npcName == "ShinobuKocho" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 2000 or Stats.DemonKills.Value < 25) then
+			Failed = true
+		end
+		
+		if npcName == "TengenUzui" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 2000 or Stats.DemonKills.Value < 25) then
+			Failed = true
+		end
+		
+		if npcName == "Snake" and (Stats.Alignment.Value == "Demon" or Stats.Alignment.Value ~= "Slayer" or Stats.SwordExp.Value < 250) then
+			Failed = true
+		end
+		
+		-- item servvvvvv
+		
+		if Item then
+			local arg = ItemArguments
+			local price = ItemArguments[1]
+			local req = ItemArguments[2]
+			if req ~= "All" then
+				if req == "Human" and Stats.Alignment.Value == "Demon" then
+					Failed = true
+				end
+				if req == "Demon" and Stats.Alignment.Value ~= "Demon" then
+					Failed = true
+				end
+			end
+			if Stats.Yen.Value < price and a == 2 then
+				Failed = true
+			end
+		end
+		
+		---
+		
+		if Stats.BreathingClass.Value == true and (npcName == "Jigoro" or npcName == "Urokodaki" or npcName == "KyojuroRengoku" or npcName == "SanemiShinazugawa" or npcName == "MuichiroTokito" or npcName == "ShinobuKocho" or npcName == "TengenUzui") then
+			String = TextString[a].Complete
+			Choices = TextString[a].CompletedChoices
+			Failed = false
+		end
+		
+		if Stats.FightingStyle.Value == true and (npcName == "Inosuke" or npcName == "Snake") then
+			String = TextString[a].Complete
+			Choices = TextString[a].CompletedChoices
+			Failed = false
+		end
+		
+		if Failed == true then
+			Choices = TextString[a].FailedChoices
+			String = TextString[a].Failed
+		end
+		
+		for b = 1, #Choices do
+			table.insert(Buttons,Choices[b])
+		end
+		
+		for k = 1, #Buttons do
+			local TextButton = CreateButton()
+			TextButton.Text = Buttons[k]
+			TextButton.Parent = GUI.Frame.Responses
+			table.insert(TextButtons,TextButton)
+		end
+		
+		local interval_Number = string.len(String)
+		for i = 1, interval_Number do
+			Player.Character.Click:Play()
+			
+			local NextString = string.sub(String,1,i)
+			Label.Text = NextString
+			wait()
+		end
+		
+		for p = 1, #TextButtons do
+			local Button = TextButtons[p]
+			t = Button.MouseButton1Click:Connect(function()
+				t:disconnect()
+				Responded = true
+				if Button.Text == "Bye" then
+					Break = true
+				else
+				if npcName == "Tailor" and Button.Text == "Yes" and a == 1 then
+					game.ReplicatedStorage.Remotes.GetTailorMenu:FireServer()
+				end	
+				if npcName == "Tailor2" and Button.Text == "Yes" and a == 1 then
+					game.ReplicatedStorage.Remotes.GetTailorMenu:FireServer()
+				end
+				if npcName == "Host" and Button.Text == "I will participate." and a == 1 then
+					game.ReplicatedStorage.Remotes.StartFinalSelection:FireServer()
+				end	
+				if npcName == "Host2" and a == 1 then
+					game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = workspace.Spawns.FinalSelectionEnd.CFrame
+				end	
+				if npcName == "Host3" and a == 1 then
+					game.Players.LocalPlayer.Character:WaitForChild("HumanoidRootPart").CFrame = workspace.Spawns.FinalSelectionEnd.CFrame
+				end	
+				if npcName == "Corps Recruiter" and Button.Text == "Sure" and a == 1 then
+					game.ReplicatedStorage.Remotes.ChangeAlignment:FireServer("Slayer")
+				end
+				if npcName == "Urokodaki" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("WaterBreathing")
+				end
+				if npcName == "Jigoro" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("ThunderBreathing")
+				end
+				if npcName == "KyojuroRengoku" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("FlameBreathing")
+				end
+				if npcName == "SanemiShinazugawa" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("WindBreathing")
+				end
+				if npcName == "MuichiroTokito" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("MistBreathing")
+				end
+				if npcName == "ShinobuKocho" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("InsectBreathing")
+				end
+				if npcName == "TengenUzui" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetClass:FireServer("SoundBreathing")
+				end
+				if npcName == "Inosuke" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetFightingStyle:FireServer("BoarFighting")
+				end
+				if npcName == "Snake" and a == 2 and Failed == false then
+					game.ReplicatedStorage.Remotes.GetFightingStyle:FireServer("SerpentFighting")
+				end
+				
+				if Item and a == 1 then
+					game.ReplicatedStorage.Remotes.PurchaseItem:FireServer(npcName)
+				end
+				
+				end
+			end)
+		end
+		
+		repeat wait()
+		until Responded == true
+		
+		if Break == true then
+			break
+		end
+		
+		--[[if CompletedDemonQuest then
+			game.ReplicatedStorage.Remotes.CompleteQuest:FireServer("UrokodakiQuest")
+		end--]]
+		
+		if Outfit and a == 2 then
+			game.ReplicatedStorage.Remotes.GetOufit:FireServer(npcName)
+		end
+	end
+	InDialogue:Destroy()
+	GUI:Destroy()
+end
+
+module.SetupChat = function(Settings)
+	if not Settings then
+		return
+	end
+	local ClickDetector = Settings.MouseDetector
+	local Title = Settings.Title
+	
+	local Dialogue = Settings.Dialogue
+	
+	ClickDetector.MouseClick:Connect(function()
+		if Player.Character:FindFirstChild("InDialogue") then
+			return
+		end
+		local Gui = script.NPCGui:Clone()
+		Gui.Enabled = true
+		Gui.Frame.Title.Text = Title
+		Gui.Parent = Player:WaitForChild("PlayerGui")
+		
+		require(script):StartText(Dialogue,Gui.Frame.TweenedText,Gui,Title)
+	end)
+end
+
+module.SetupOutfit = function(Settings)
+	if not Settings then
+		return
+	end
+	local ClickDetector = Settings.MouseDetector
+	local Title = Settings.Title
+	local Price = Settings.Price
+	local Requirement = Settings.Requirement
+	
+	local Dialogue = {
+		[1] 
+		= {
+			Message = "Buy outfit for "..Price.." yen?";
+			
+			Choices = 
+			{
+				"Ok"; 
+				"Bye";
+			}
+		};
+		[2]
+		= {
+			Failed = "You don't have enough money.";
+			
+			FailedChoices = {
+				"Bye";	
+			};
+			
+			Message = "You bought the outfit.";
+			Choices = {"...";}
+		}
+	}
+	
+	ClickDetector.MouseClick:Connect(function()
+		if Player.Character:FindFirstChild("InDialogue") then
+			return
+		end
+		local Gui = script.NPCGui:Clone()
+		Gui.Enabled = true
+		Gui.Frame.Title.Text = Title
+		Gui.Parent = Player:WaitForChild("PlayerGui")
+		
+		require(script):StartText(Dialogue,Gui.Frame.TweenedText,Gui,Title,true,true,{Price,Requirement})
+	end)
+end
+
+module.SetupShop = function(Settings)
+	if not Settings then
+		return
+	end
+	local ClickDetector = Settings.MouseDetector
+	local Title = Settings.Title
+	local Price = Settings.Price
+	local Requirement = Settings.Requirement
+	
+	local Dialogue = {
+		[1] 
+		= {
+			Failed = "You can't buy this.";
+			
+			Message = "Buy "..Title.." for "..Price.." yen?";
+			
+			FailedChoices = {
+				"Bye";	
+			};
+			
+			Choices = 
+			{
+				"Yes"; 
+				"Bye";
+			}
+		};
+		[2]
+		= {
+			Failed = "You don't have enough money.";
+			
+			FailedChoices = {
+				"Bye";	
+			};
+			
+			Message = "You bought the " .. Title .. ".";
+			Choices = {"...";}
+		}
+	}
+	
+	ClickDetector.MouseClick:Connect(function()
+		if Player.Character:FindFirstChild("InDialogue") then
+			return
+		end
+		local Gui = script.NPCGui:Clone()
+		Gui.Enabled = true
+		Gui.Frame.Title.Text = Title
+		Gui.Parent = Player:WaitForChild("PlayerGui")
+		
+		require(script):StartText(Dialogue,Gui.Frame.TweenedText,Gui,Title,false,true,{Price,Requirement})
+	end)
+end
+
+return module

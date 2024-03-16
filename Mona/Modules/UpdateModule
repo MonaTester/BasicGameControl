@@ -1,0 +1,241 @@
+local module = {}
+function module:UpdateSpecs(player)
+	local character = player.Character
+	local stats = game.ReplicatedStorage[".stats"]:FindFirstChild(player.Name)
+	local specs = game.ServerStorage.Specs:FindFirstChild(player.Name)
+	if not specs then
+		return
+	end
+	if not stats then
+		return
+	end
+	
+	local MorphAssets = specs.MorphAssets
+	local MorphTable = {}
+	for index,object in pairs(MorphAssets:GetChildren()) do
+		table.insert(MorphTable,object)
+	end
+	
+	for index,object in pairs(character:GetChildren()) do
+		for item,Obj in pairs(MorphTable) do
+			if Obj.ClassName == object.ClassName then
+			object:Destroy()
+			end
+		end
+	end
+
+	for objectName,object in pairs(MorphTable) do
+		if string.lower(object.Name) == "scar" then
+			local scar = object.Parent.scar:Clone()
+			scar.Parent = character.Head
+		end
+		if string.lower(object.Name) == "face" then
+			character.FacePart.Face.Texture = object.Texture
+			--[[if object.Texture == "" then
+				character.Head.Reflectance = 0
+			end--]]
+		else
+			object:Clone().Parent = character
+		end
+	end
+	
+	for _,tool in pairs(specs.Tools:GetChildren()) do
+		if not stats.Tools:FindFirstChild(tool.Name) then
+			tool:Clone().Parent = stats.Tools
+		end
+	end
+	
+	for _,Configurable in pairs(specs.Config:GetChildren()) do
+		if stats:FindFirstChild(Configurable.Name) then
+			stats:FindFirstChild(Configurable.Name).Value = Configurable.Value
+		end
+	end
+	if specs:FindFirstChild("Buffs") then
+	for stat,Buff in pairs(specs.Buffs:GetChildren()) do
+		if Buff.Name == "HealthBuff" then
+			character.Humanoid.MaxHealth = character.Humanoid.MaxHealth + Buff.Value
+			character.Humanoid.Health = character.Humanoid.MaxHealth
+		elseif Buff.Name == "SpeedBuff" then
+			character.RunSpeed.Value = character.RunSpeed.Value + Buff.Value
+		elseif Buff.Name == "BaseSpeedBuff" then
+			character.BaseSpeed.Value = character.BaseSpeed.Value + Buff.Value
+		elseif Buff.Name == "RegenStep" then
+			character.RegenStep.Value = Buff.Value
+		elseif Buff.Name == "RegenRate" then
+			character.RegenRate.Value = Buff.Value
+		elseif Buff.Name == "DamageBuff" then
+			character.DamageBuff.Value = character.DamageBuff.Value + Buff.Value
+		end
+	end
+	end
+	
+	local CharacterAssets = specs:FindFirstChild("Character")
+	if CharacterAssets then
+		for i, v in pairs(CharacterAssets:GetChildren()) do
+			v:Clone().Parent = character
+		end
+	end
+end
+function module:UpdateOufit(character,outfit)
+	local outfit = game.ReplicatedStorage.Assets.Outfits:FindFirstChild(outfit)
+	if not outfit then
+		return
+	end
+	
+	local Shirt
+	local Pants
+	
+	Shirt = outfit:FindFirstChild("Shirt")
+	Pants = outfit:FindFirstChild("Pants")
+	
+	if Shirt then
+		Shirt = Shirt:Clone()
+	end
+	if Pants then
+		Pants = Pants:Clone()
+	end
+	
+	if character:FindFirstChild("Shirt") then
+		character:FindFirstChild("Shirt"):Destroy()
+	end
+	if character:FindFirstChild("Pants") then
+		character:FindFirstChild("Pants"):Destroy()
+	end
+	
+	if Shirt then
+		Shirt.Parent = character
+	end
+	if Pants then
+		Pants.Parent = character
+	end
+end
+
+function module:UpdateBackpack(player)
+	local stats = game.ReplicatedStorage[".stats"]:WaitForChild(player.Name)
+	local tools = stats.Tools
+	if stats.BreathingClass.Value == true and stats.BreathingStyle.Value == "SoundBreathing" and stats.Alignment.Value == "Slayer" then
+		local Items = {"Death Knells of Avici";"Roar";"Symphony of Shrill Strings"}
+		for i = 1, #Items do
+			if not tools:FindFirstChild(Items[i]) then
+				local tool = Instance.new("BoolValue")
+				tool.Name = Items[i]
+				tool.Parent = tools
+			end
+		end
+	end
+	
+	if stats.Alignment.Value == "Slayer" or stats.Alignment.Value == "Human" then
+		
+		for i, v in pairs(tools:GetChildren()) do
+			for a, b in pairs(game.ServerStorage.Tools.Demon:GetChildren()) do
+				if b.Name == v.Name then
+					v:Destroy()
+				end
+			end
+		end
+		
+	elseif stats.Alignment.Value == "Demon" and stats.Hybrid.Value == false then
+			
+		for i, v in pairs(tools:GetChildren()) do
+			for a, b in pairs(game.ServerStorage.Tools.Slayer:GetChildren()) do
+				if b.Name == v.Name then
+					v:Destroy()
+				end
+			end
+		end	
+		
+	end
+	if tools:FindFirstChild("Pounce") and tools:FindFirstChild("Demon Pounce") then
+		tools:FindFirstChild("Pounce"):Destroy()
+	end
+	if player.Backpack:FindFirstChild("Pounce") and tools:FindFirstChild("Demon Pounce") then
+		player.Backpack:FindFirstChild("Pounce"):Destroy()
+	end
+	for i, v in pairs(tools:GetChildren()) do
+		for _,tool in pairs(game.ServerStorage.Tools:GetDescendants()) do
+			if tool.ClassName == "Tool" and tool.Name == v.Name then
+				local no
+				for a, b in pairs(player.Backpack:GetChildren()) do
+					if b.Name == tool.Name then
+						no = true
+					end
+				end
+				if player.Character then
+				for a, b in pairs(player.Character:GetChildren()) do
+					if b.Name == tool.Name then
+						no = true
+					end
+				end
+				end
+				if not no then
+				tool:Clone().Parent = player.Backpack
+				end
+			end
+		end
+	end
+end
+
+function module:UpdateDemon(player)
+	local stats = game.ReplicatedStorage[".stats"]:WaitForChild(player.Name)
+	if stats.Alignment.Value ~="Demon" then
+		return
+	end
+	local character = player.Character
+	
+	local demonType = stats.DemonType.Value
+	local Folder = game.ReplicatedStorage.Assets.DemonTypes:FindFirstChild(demonType)
+	
+	if Folder then
+		local Char = Folder:FindFirstChild("Character")
+		local BC = Folder:FindFirstChildWhichIsA("BodyColors")
+		local NoAcc = Folder:FindFirstChild("NoAccessories")
+		local NoHair = Folder:FindFirstChild("NoHair")
+		
+		if NoHair then
+			local name = require(game.ServerScriptService._G.Accessory)
+			local nameList = name.nameList
+			local nameList2 = name.nameList2
+			for _,x in pairs(character:GetChildren()) do
+				if x:IsA('Accessory') then
+					local attachment = x:FindFirstChildWhichIsA('Attachment',true)
+					if attachment and nameList[attachment.Name] then
+						if nameList2[attachment.Name] == 'HairAttachment' then
+						x:Destroy()
+						end
+					end
+				end
+			end
+		end
+		
+		if NoAcc then
+			local name = require(game.ServerScriptService._G.Accessory)
+			local nameList = name.nameList
+			local nameList2 = name.nameList2
+			for _,x in pairs(character:GetChildren()) do
+				if x:IsA('Accessory') then
+					local attachment = x:FindFirstChildWhichIsA('Attachment',true)
+					if attachment and nameList[attachment.Name] then
+						if nameList2[attachment.Name] == 'HairAttachment' then
+						else
+							x:Destroy()
+						end
+					end
+				end
+			end
+		end
+		
+		if BC then
+			if character:FindFirstChildWhichIsA("BodyColors") then
+				character:FindFirstChildWhichIsA("BodyColors"):Destroy()
+			end
+			BC:Clone().Parent = character
+		end
+		if Char then
+		for i, v in pairs(Char:GetChildren()) do
+			v:Clone().Parent = character
+		end
+		end
+	end
+end
+
+return module

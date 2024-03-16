@@ -1,0 +1,66 @@
+local ItemModule = require(game.ServerScriptService.Modules.ItemModule)
+local Items = {
+	["Katana"] = {Price = 0; Req = "Human"};
+	["Nichirin Katana"] = {Price = 100; Req = "Human"};
+	["Ramen"] = {Price = 10; Req = "All"};
+	["Small Gourd"] = {Price = 100; Req = "Human";};
+	["Medium Gourd"] = {Price = 200; Req = "Human";};
+	["Large Gourd"] = {Price = 400; Req = "Human";};
+}
+function isfood(item)
+	if item == "Ramen" or item == "Onigiri" or item == "Small Gourd" or item == "Medium Gourd" or item == "Large Gourd" then
+		return true
+	end
+end
+game.ReplicatedStorage.Remotes.PurchaseItem.OnServerEvent:Connect(function(player,item)
+	local PlayerStats = game.ReplicatedStorage[".stats"]:FindFirstChild(player.Name)
+	if not PlayerStats then
+		return
+	end
+	if not Items[item] then
+		return
+	end
+	local Price = Items[item].Price
+	local Req = Items[item].Req
+	
+	if Req == "Human" then
+		if PlayerStats.Alignment.Value == "Demon" then
+			return
+		end
+	elseif Req == "Demon" then
+		if PlayerStats.Alignment.Value ~= "Demon" then
+			return
+		end
+	end
+	
+	if PlayerStats.Yen.Value < Price then
+		return
+	end
+	if item == "Nichirin Katana" or item == "Katana" then
+		local items = PlayerStats.Tools
+		for a,b in pairs(items:GetChildren()) do
+			if b.Name == "Katana" or b.Name == "Nichirin Katana" then
+				b:Destroy()
+			end
+		end
+		for a,b in pairs(player.Backpack:GetChildren()) do
+			if b.Name == "Katana" or b.Name == "Nichirin Katana" then
+				b:Destroy()
+			end
+		end
+		for a,b in pairs(player.Character:GetChildren()) do
+			if b.Name == "Katana" or b.Name == "Nichirin Katana" then
+				b:Destroy()
+			end
+		end
+	end
+	PlayerStats.Yen.Value = PlayerStats.Yen.Value - Price
+	if isfood(item) then
+		local tool = game.ServerStorage.Food:FindFirstChild(item)
+		if tool then
+		tool:Clone().Parent = player.Backpack
+		end
+		return
+	end
+	ItemModule.GiveItem(player,item)
+end)
