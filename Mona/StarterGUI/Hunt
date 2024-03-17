@@ -1,0 +1,27 @@
+local player = script.Parent.Parent.Parent
+player:WaitForChild("Backpack")
+local character = player.Character or player.CharacterAdded:Wait()
+local root = character:WaitForChild("HumanoidRootPart")
+
+local InCD = script.Parent.InCD
+local CDTime = script.Parent.CDTime.Value
+
+local Caster = require(game.ServerScriptService.SkillCaster)
+
+script.Parent.Deactivated:Connect(function()
+	if InCD.Value == true then
+		return
+	end
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	if character:FindFirstChild("CombatDisable") then
+		return
+	end
+	InCD.Value = true
+	local Reponse = Caster(character,script.Parent.Name)
+	if Reponse then
+	wait(CDTime)
+	InCD.Value = false
+	end
+end)

@@ -1,0 +1,124 @@
+local module = {}
+
+local Character = script.Parent
+local Humanoid = Character:WaitForChild("Humanoid")
+local RootPart = Character:WaitForChild("HumanoidRootPart")
+local TargetValue = Character:WaitForChild("Target")
+local Combo = Character:WaitForChild("Combo")
+
+local CombatModule = require(game.ServerScriptService.Modules.CombatModules.Combat)
+local CombatM2Module = require(game.ServerScriptService.Modules.CombatModules.M2.Combat)
+function sub(...)
+	coroutine.wrap(...)()
+end
+script:WaitForChild("Blocking")
+script:WaitForChild("SwordBlock")
+function IsDemon(target)
+	if target:FindFirstChild("DemonDeath") then
+		return true
+	end
+	if target:FindFirstChild("NPC") and target:FindFirstChild("DemonDeath") then
+		return true
+	end
+end
+
+module.TagPlayer = function(Range)
+	local HitboxModule = require(game.ReplicatedStorage.Modules.HitboxModule)
+	if not TargetValue.Value then
+		for i, v in pairs(workspace.LivingThings:GetChildren()) do
+			if v and v:FindFirstChild("Humanoid") and v:FindFirstChild("HumanoidRootPart") and v.Humanoid.Health > 0 and not IsDemon(v) and not v:FindFirstChild("NPC") then
+				local calculations = (RootPart.Position-v.HumanoidRootPart.Position).magnitude
+				if calculations <= Range*2 then
+					TargetValue.Value = v
+				end
+			end
+		end
+	end
+end
+
+module.FollowTarget = function()
+	if TargetValue.Value and not IsDemon(TargetValue.Value) and TargetValue.Value:FindFirstChild("HumanoidRootPart") and not TargetValue.Value:FindFirstChild("NPC") then
+		local Target = TargetValue.Value
+		local Root = Target.HumanoidRootPart
+		Humanoid:MoveTo(CFrame.new(Root.Position,RootPart.Position) * CFrame.new(0,0,-1).p)
+		local pathFinding = require(game.ServerScriptService.Modules.Pathfinding)
+		pathFinding(Character)
+	end
+end
+
+module.Attack = function()
+	local Target = TargetValue.Value
+	if Target and not Target:FindFirstChild("NPC") then
+		if (Target:FindFirstChild("Blocking") and Combo.Value > 2) or Target:FindFirstChild("Knocked") then
+			CombatM2Module(Character,7)
+			return
+		end --]]
+		CombatModule(Character,4)
+	end
+end
+
+module.Block = function()
+	if Character:FindFirstChild("CombatDisable") then
+		return
+	end
+	if Character:FindFirstChild("Stunned") then
+		return
+	end
+	local blockanim = Humanoid:LoadAnimation(script.Blocking)
+	
+	for i, v in pairs(Character:GetChildren()) do
+		if v.ClassName == "Tool" and v:FindFirstChild("Type") then
+			if v.Type.Value == "Sword" then
+				blockanim = Humanoid:LoadAnimation(script.SwordBlock)
+			end
+			break
+		end
+	end
+	blockanim:Play()
+	local blockVal = Instance.new("BoolValue")
+	blockVal.Name = "Blocking"
+	blockVal.Parent = Character
+	
+	local com = Instance.new("BoolValue")
+	com.Name = "CombatDisable"
+	com.Parent = Character
+	
+	local pblock = Instance.new("BoolValue")
+	pblock.Name = "PerfectBlock"
+	pblock.Parent = Character
+	game.Debris:AddItem(pblock,.15)
+	
+	local noJump = Instance.new("BoolValue")
+	noJump.Name = "NoJump"
+	noJump.Parent = Character.Effects
+	sub(function()
+		repeat
+			wait()
+			if Character:FindFirstChild("Stunned") then
+				break
+			end
+			Humanoid.WalkSpeed = 8
+		until not Character:FindFirstChild("Blocking")
+		
+		if not Character:FindFirstChild("Stunned") then
+		Humanoid.WalkSpeed = Character:WaitForChild("BaseSpeed").Value
+		end
+		wait(0.05)
+		game.Debris:AddItem(noJump,.05)
+		game.Debris:AddItem(com,.05)
+		blockanim:Stop()
+		
+		if blockVal then
+			game.Debris:AddItem(blockVal,.05)
+			-- blockVal:Destroy()
+		end
+	end)
+end
+
+module.Unblock = function()
+	if Character:FindFirstChild("Blocking") then
+		Character:FindFirstChild("Blocking"):Destroy()
+	end
+end
+
+return module

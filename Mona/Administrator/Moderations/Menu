@@ -1,0 +1,148 @@
+local players = game:GetService("Players")
+local replicatedStorage = game:GetService("ReplicatedStorage")
+local userInputService = game:GetService("UserInputService")
+
+local localPlayer = players.LocalPlayer
+local localCharacter = localPlayer.Character
+
+local camera = workspace.CurrentCamera
+
+local moderationMenu = script.Parent
+
+local canToggle = true
+local banDebounce = true
+local clicks = 0
+local confirmed = false
+
+for _, player in pairs(players:GetPlayers()) do
+	if player.Character and player.Character ~= localCharacter then
+		local button = moderationMenu.template:Clone()
+		button.Name = player.Name
+		button.Text = player.Name
+		button.Visible = true
+		button.Parent = moderationMenu.frame
+		local function buttonClicked()
+			moderationMenu.spectating.Text = "SPECTATING: "..string.upper(player.Name)
+			moderationMenu.spectating.Visible = true
+			moderationMenu.ban.Visible = true
+			camera.CameraSubject = player.Character.Humanoid
+			moderationMenu.currentlySpectating.Value = player.Name
+		end
+		button.MouseButton1Click:Connect(buttonClicked)
+	end
+end
+
+local function playerAdded(player)
+	local button = moderationMenu.template:Clone()
+	button.Name = player.Name
+	button.Text = player.Name
+	button.Visible = true
+	button.Parent = moderationMenu.frame
+	local function buttonClicked()
+		moderationMenu.spectating.Text = "SPECTATING: "..string.upper(player.Name)
+		moderationMenu.spectating.Visible = true
+		moderationMenu.ban.Visible = true
+		camera.CameraSubject = player.Character.Humanoid
+		moderationMenu.currentlySpectating.Value = player.Name
+	end
+	button.MouseButton1Click:Connect(buttonClicked)
+end
+players.PlayerAdded:Connect(playerAdded)
+
+local function PlayerRemoving(player)
+	if moderationMenu.frame:FindFirstChild(player.Name) then
+		moderationMenu.frame[player.Name]:Destroy()
+	end
+	if not workspace:FindFirstChild(camera.CameraSubject.Parent, true) then
+		moderationMenu.spectating.Text = "SPECTATING: NAME"
+		moderationMenu.spectating.Visible = false
+		moderationMenu.ban.Visible = false
+		if localCharacter and localCharacter:FindFirstChildOfClass("Humanoid") then
+			camera.CameraSubject = localCharacter.Humanoid
+		end
+		wait(0.125)
+		moderationMenu.currentlySpectating.Value = "nil"
+	end
+end
+players.PlayerRemoving:Connect(PlayerRemoving)
+
+local function ban()
+	if banDebounce then
+		banDebounce = false
+		if clicks < 2 then
+			clicks = clicks + 1
+		end
+		if clicks == 1 and not confirmed and moderationMenu.ban.Text == "BAN" then
+			for i = 2.5, 0, -0.1 do
+				wait(0.1)
+				moderationMenu.ban.Text = "WAIT("..i..")"
+				if i < 0.2 then
+					moderationMenu.ban.Text = "CONFIRM BAN"
+					confirmed = true
+					clicks = 1
+				end
+				clicks = 1
+			end
+			spawn(function()
+				wait(2.5)
+				if clicks == 1 then
+					moderationMenu.ban.Text = "TIMED OUT"
+					confirmed = false
+					clicks = 0
+					wait(2.5)
+					moderationMenu.ban.Text = "BAN"
+					confirmed = false
+					clicks = 0
+				end
+			end)
+		end
+		if clicks == 2 and confirmed and moderationMenu.ban.Text == "CONFIRM BAN" then
+			if moderationMenu.currentlySpectating.Value ~= "nil" then
+				replicatedStorage.Remotes.ban:FireServer(moderationMenu.currentlySpectating.Value)
+			end
+			moderationMenu.ban.Text = "BANNED"
+			confirmed = false
+			clicks = 0
+			wait(2.5)
+			moderationMenu.ban.Text = "BAN"
+		end
+		wait(0.5)
+		banDebounce = true
+	end
+end
+moderationMenu.ban.MouseButton1Click:Connect(ban)
+
+local function unban()
+	replicatedStorage.Remotes.unban:FireServer(moderationMenu.id.Text)
+end
+moderationMenu.unban.MouseButton1Click:Connect(unban)
+
+local function bannotingame()
+	replicatedStorage.Remotes.bannotingame:FireServer(moderationMenu.id.Text)
+end
+moderationMenu.bannotingame.MouseButton1Click:Connect(bannotingame)
+
+local function inputBegan(input, processed)
+	if processed then
+		return
+	end
+	if input.KeyCode == Enum.KeyCode.J then
+		if canToggle then
+			canToggle = false
+			moderationMenu.Enabled = not moderationMenu.Enabled
+			if not moderationMenu.Enabled then
+				moderationMenu.spectating.Text = "SPECTATING: NAME"
+				moderationMenu.spectating.Visible = false
+				moderationMenu.ban.Visible = false
+				if localCharacter and localCharacter:FindFirstChildOfClass("Humanoid") then
+					camera.CameraSubject = localCharacter.Humanoid
+				end
+				wait(0.125)
+				moderationMenu.currentlySpectating.Value = "nil"
+			end
+			wait(0.25)
+			canToggle = true
+		end
+	end
+end
+userInputService.InputBegan:Connect(inputBegan)

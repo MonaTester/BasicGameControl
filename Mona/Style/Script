@@ -8,7 +8,7 @@ game.ReplicatedStorage.Remotes.GetFightingStyle.OnServerEvent:Connect(function(p
 	local Class = Style
 	if PlayerStats.FightingStyle.Value == true then
 		return
-	end--]]
+	end
 	if Class == "BoarFighting" then
 		if PlayerStats.Yen.Value < 35 then
 			return

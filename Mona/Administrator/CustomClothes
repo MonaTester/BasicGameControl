@@ -1,0 +1,56 @@
+local marketplaceService = game:GetService("MarketplaceService")
+
+local debounce = true
+
+script.Parent.ApplyTexture.OnServerEvent:Connect(function(player, argument)
+	local PlayerStats = game.ReplicatedStorage[".stats"]:FindFirstChild(player.Name)
+	local character = player.Character
+	local root = character.HumanoidRootPart
+	local humanoid = character.Humanoid
+	if not PlayerStats then
+		return
+	end
+	if marketplaceService:UserOwnsGamePassAsync(player.UserId, 8202523) then
+		if PlayerStats.Outfit.Value == "customHaori" and character:FindFirstChild("haoriPattern") then
+			for _, child in pairs(character:FindFirstChild("haoriPattern"):GetChildren()) do
+				for _, otherChild in pairs(child["_"]:GetChildren()) do
+					if otherChild.Name == "pattern" then
+						otherChild.Texture = "https://www.roblox.com/asset-thumbnail/image?assetId="..argument.."&width=420&height=420&format=png"
+						PlayerStats.haoriPattern.Value = tonumber(argument)
+					end
+				end
+			end
+		end
+	end
+end)
+
+script.Parent.ApplyColor.OnServerEvent:Connect(function(player, r, g, b)
+	local PlayerStats = game.ReplicatedStorage[".stats"]:FindFirstChild(player.Name)
+	local character = player.Character
+	local root = character.HumanoidRootPart
+	local humanoid = character.Humanoid
+	if not PlayerStats then
+		return
+	end
+	if marketplaceService:UserOwnsGamePassAsync(player.UserId, 8202523) then
+		if PlayerStats.Outfit.Value == "customHaori" and character:FindFirstChild("haoriPattern") then 
+			if debounce then
+				debounce = false
+				for _, child in pairs(character:FindFirstChild("haoriPattern"):GetChildren()) do
+					child["_"].Color = Color3.fromRGB(r, g, b)
+					PlayerStats.haoriColorR.Value = r
+					PlayerStats.haoriColorG.Value = g
+					PlayerStats.haoriColorB.Value = b
+				end
+				debounce = true
+				wait()
+			end
+			if character:FindFirstChildOfClass("Shirt") then
+				character:FindFirstChildOfClass("Shirt").Color3 = Color3.fromRGB(argument[1], argument[2], argument[3])
+			end
+			if character:FindFirstChildOfClass("Pants") then
+				character:FindFirstChildOfClass("Pants").Color3 = Color3.fromRGB(argument[1], argument[2], argument[3])
+			end
+		end
+	end
+end)

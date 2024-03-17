@@ -20,7 +20,7 @@ function module:StartText(TextString,Label,GUI,npcName,Outfit,Item,ItemArguments
 	
 	local function CreateButton()
 		
-		--[[local Button = Instance.new("TextButton")
+		local Button = Instance.new("TextButton")
 		Button.Name = "b_Response"
 		Button.BackgroundTransparency = .5
 		Button.BackgroundColor3 = Color3.fromRGB(73,74,74)
@@ -29,7 +29,7 @@ function module:StartText(TextString,Label,GUI,npcName,Outfit,Item,ItemArguments
 		Button.TextColor3 = Color3.fromRGB(255,255,255)
 		Button.TextStrokeColor3 = Color3.fromRGB(0,0,0)
 		Button.TextStrokeTransparency = 0.9
-		Button.Font = Enum.Font.Fantasy]]
+		Button.Font = Enum.Font.Fantasy
 		local Button = script.b_Response:Clone()
 		
 		return Button
@@ -48,13 +48,13 @@ function module:StartText(TextString,Label,GUI,npcName,Outfit,Item,ItemArguments
 			TextButtons[g]:Destroy()
 		end
 		
-		--[[if (Stats.DemonKills.Value >= 15 or Stats.CompletedQuests:FindFirstChild("UrokodakiQuest")) and npcName == "Urokodaki" then
+		if (Stats.DemonKills.Value >= 15 or Stats.CompletedQuests:FindFirstChild("UrokodakiQuest")) and npcName == "Urokodaki" then
 			CompletedDemonQuest = true
 			String = TextString[a].Complete
 			Choices = TextString[a].CompleteChoices
-		end--]]
+		end
 		
-		-- yen check --
+		-- Yen Checker --
 		
 		if npcName == "Urokodaki" and Stats.Yen.Value < 35 and a == 3 then
 			Failed = true
@@ -283,9 +283,9 @@ function module:StartText(TextString,Label,GUI,npcName,Outfit,Item,ItemArguments
 			break
 		end
 		
-		--[[if CompletedDemonQuest then
+		if CompletedDemonQuest then
 			game.ReplicatedStorage.Remotes.CompleteQuest:FireServer("UrokodakiQuest")
-		end--]]
+		end
 		
 		if Outfit and a == 2 then
 			game.ReplicatedStorage.Remotes.GetOufit:FireServer(npcName)

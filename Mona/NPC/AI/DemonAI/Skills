@@ -1,0 +1,14 @@
+local Moves = {}
+
+local Techniques = require(script.Techniques)
+Techniques = Techniques[math.random(1,#Techniques)]
+local DemonFolder = game.ServerScriptService.Skills.Demon:FindFirstChild(Techniques,true)
+if DemonFolder then
+	for a,b in pairs(DemonFolder:GetChildren()) do
+		if b.ClassName == "ModuleScript" then
+			table.insert(Moves,b.Name)
+		end
+	end
+end
+
+return Moves
