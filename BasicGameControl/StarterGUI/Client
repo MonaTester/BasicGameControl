@@ -1,0 +1,185 @@
+repeat wait()
+until game.Players.LocalPlayer.Character
+game:GetService("StarterGui"):SetCoreGuiEnabled(Enum.CoreGuiType.Backpack,false)
+local character = game.Players.LocalPlayer.Character
+
+function sub(...)
+	coroutine.wrap(...)()
+end
+
+local Stats = game.ReplicatedStorage[".stats"]:WaitForChild(game.Players.LocalPlayer.Name)
+
+script.Parent:WaitForChild("Loading", 1).Enabled = true
+repeat wait()
+until Stats:FindFirstChild("Ready")
+script.Parent:WaitForChild("Loading", 1).Frame.TextLabel.Visible = false
+sub(function()
+	for i = 1, 10 do wait()
+		script.Parent.Loading.Frame.BackgroundTransparency = script.Parent.Loading.Frame.BackgroundTransparency + .1
+	end
+end)
+
+local DialogueService = require(script.Parent:WaitForChild("DialogueService"))
+local NPCDialogue = require(script.Parent.DialogueService.NPC_Settings)
+
+if game.PrivateServerId ~= "" then
+	script.Parent.Menu.Frame.Wipe.BackgroundTransparency = 1
+	script.Parent.Menu.Frame.Wipe.TextTransparency = 1
+end
+
+sub(function()
+	for i, v in pairs(NPCDialogue) do
+		DialogueService.SetupChat(NPCDialogue[i])
+	end
+end)
+sub(function()
+	for i, v in pairs(workspace.NPCS.OutfitShop:GetChildren()) do
+	local dude  = 
+	{
+		MouseDetector = v.CD.ClickDetector;
+		Title = v.Name;
+		Price = v.Cost.Value;
+	};
+	DialogueService.SetupOutfit(dude)
+	end
+end)
+sub(function()
+	for i, v in pairs(workspace.NPCS.WeaponShop:GetChildren()) do
+	local dude  = 
+	{
+		MouseDetector = v.Speak.ClickDetector;
+		Title = v.Name;
+		Price = v.Cost.Value;
+		Requirement = v.Requirement.Value;
+	};
+	DialogueService.SetupShop(dude)
+	end
+end)
+
+local humanoid = character:WaitForChild("Humanoid")
+local uis = game:GetService("UserInputService")
+
+script.Parent.InCombat.Text.Text = [[
+	IN COMBAT
+	Logging is for the weak
+]]
+if game.PrivateServerId ~= "" then
+script.Parent.CantSave.Enabled = true
+end
+
+local Importantscreengui = script.Parent.Base
+local MainFrame = Importantscreengui.MainFrame
+local HealthBar = MainFrame.Health.Back.Bar
+local HungerBar = MainFrame.Hunger.Back.Bar
+local BreathingBar = MainFrame.Breathing.Back.Bar
+Importantscreengui.Enabled = true
+
+script.Parent.Yen.Enabled = true
+
+_G.CameraBob = true
+_G.DelayCameraBob = false
+_G.DisabledCameraBob = true
+
+local bg = Instance.new("BodyGyro")
+bg.MaxTorque = Vector3.new(0,math.huge,0)
+bg.D = 0
+bg.Name = "TurningGyro"
+bg.Parent = character:WaitForChild("HumanoidRootPart")
+
+game["Run Service"].RenderStepped:Connect(function()
+	if character:WaitForChild("Effects"):FindFirstChild("InCombat") then
+		if character:WaitForChild("Effects"):FindFirstChild("InCombat") then
+			script.Parent.InCombat.Enabled = true
+		else
+			script.Parent.InCombat.Enabled = false
+		end
+	end
+	if game.Players.LocalPlayer:FindFirstChild("InCombat") then
+		if game.Players.LocalPlayer:FindFirstChild("InCombat").Value == true then
+			script.Parent.InCombat.Enabled = true
+		else
+			script.Parent.InCombat.Enabled = false
+		end
+	end
+	if Stats.BreathingType.Value == "Water" then
+		script.Parent.BreathingGui.Outer.Layer.BackgroundColor3 = Color3.fromRGB(15, 128, 255)
+	elseif Stats.BreathingType.Value == "Thunder" then
+		script.Parent.BreathingGui.Outer.Layer.BackgroundColor3 = Color3.fromRGB(255, 255, 10)
+	elseif Stats.BreathingType.Value == "Fire" then
+		script.Parent.BreathingGui.Outer.Layer.BackgroundColor3 = Color3.fromRGB(253, 128, 8)
+	end
+	
+	if humanoid.AutoRotate == false then
+		_G.DelayCameraBob = true
+	else
+		_G.DelayCameraBob = false
+	end
+	
+	if uis.MouseBehavior ~= Enum.MouseBehavior.LockCenter or _G.DisabledCameraBob then
+		_G.CameraBob = false
+	else
+		_G.CameraBob = true
+	end
+	
+	if _G.CameraBob then
+		if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("moderationMenu") then
+			bg.Parent = character:WaitForChild("HumanoidRootPart")
+			workspace.CurrentCamera.CameraSubject = character:WaitForChild("Head")
+			if _G.DelayCameraBob then
+			bg.MaxTorque = Vector3.new(0,0,0)
+			else
+			bg.MaxTorque = Vector3.new(0,math.huge,0)
+			end
+			bg.CFrame = workspace.CurrentCamera.CFrame
+		else
+			bg.Parent = nil
+		end
+	else
+		if not game.Players.LocalPlayer.PlayerGui:FindFirstChild("moderationMenu") then
+			bg.Parent = character:WaitForChild("HumanoidRootPart")
+			workspace.CurrentCamera.CameraSubject = humanoid
+			bg.MaxTorque = Vector3.new(0,0,0)
+		else
+			bg.Parent = nil
+		end
+	end
+	
+	if Stats.Gender.Value == "" then
+		game.Lighting.Blur.Enabled = true
+	else
+		game.Lighting.Blur.Enabled = false
+	end
+	
+	local Yen = script.Parent.Yen.TextLabel
+	Yen.Text = "$"..Stats.Yen.Value
+	
+	local BreathingValue = character:WaitForChild("Breathing").Value
+	local MaxBreathingValue = character:WaitForChild("MaxBreathing").Value
+	local Change = (BreathingValue/MaxBreathingValue)
+	
+	game.TweenService:Create(BreathingBar, TweenInfo.new(.2, Enum.EasingStyle.Sine), {
+		Size = UDim2.new(Change,0,1,0)
+		Position = UDim2.new(.025,0,change2,0);
+		UDim2.new(0,(BreathingValue/MaxBreathingValue)*300,0,20)
+	}):Play()
+	
+	local BreathingFatigue = character:WaitForChild("BreathingFatigue").Value
+	local Change = (BreathingFatigue/100)
+	
+	game.TweenService:Create(HungerBar, TweenInfo.new(.2, Enum.EasingStyle.Sine), {
+		Size = UDim2.new(Change,0,1,0)
+		Position = UDim2.new(.025,0,change2,0);
+		UDim2.new(0,(BreathingValue/MaxBreathingValue)*300,0,20)
+	}):Play()
+	
+	local Health = humanoid.Health
+	local MaxHealth = humanoid.MaxHealth
+	local HealthChange = (Health/MaxHealth)
+	
+	game.TweenService:Create(HealthBar, TweenInfo.new(.2, Enum.EasingStyle.Sine), {
+		Size = UDim2.new(HealthChange,0,1,0)
+		Position = UDim2.new(.025,0,change2,0);
+		UDim2.new(0,(BreathingValue/MaxBreathingValue)*300,0,20)
+	}):Play()
+	script.Parent.BreathingGui.Outer.Layer.Size = UDim2.new(0,(BreathingValue/MaxBreathingValue)*300,0,20)
+end)

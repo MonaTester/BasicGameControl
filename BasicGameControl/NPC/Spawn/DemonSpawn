@@ -1,0 +1,129 @@
+local DemonAIPacket = game.ServerStorage.DemonAIPacket
+
+local DemonSpawns = workspace.DemonSpawns
+
+local Lighting = game.Lighting
+
+local DemonVariations = game.ReplicatedStorage.DemonVariations:GetChildren()
+local BossDemonVariations = game.ReplicatedStorage.BossDemons:GetChildren()
+
+function IsDemon(target)
+	if target:FindFirstChild("NPC") and target:FindFirstChild("DemonDeath") then
+		return true
+	end
+end
+
+for a, b in pairs(workspace.DemonSpawns:GetChildren()) do
+	if not b:FindFirstChild("Child") then
+		local child = Instance.new("ObjectValue")
+		child.Name = "Child"
+		child.Value = nil
+		child.Parent = b
+	end
+end
+
+function ScaleDemonCount()
+	local LivingThings = workspace.LivingThings
+	local Players = game.Players
+	
+	local PlayerCount = 0
+	local MaxDemonCount = #workspace.DemonSpawns:GetChildren()
+	local MaxDemonCount = 10
+	local DemonCount = 0
+	for i, v in pairs(Players:GetChildren()) do
+		if v and v:IsA("Player") then
+			PlayerCount = PlayerCount + 1
+		end
+	end
+	
+	for i, v in pairs(LivingThings:GetChildren()) do
+		if IsDemon(v) then
+			DemonCount = DemonCount + 1
+		end
+	end
+	
+	if DemonCount > MaxDemonCount then
+	
+	-- ...Clearing demons... --
+	
+	local ClearedDemons = 0
+	for i, v in pairs(LivingThings:GetChildren()) do
+		if IsDemon(v) then
+			local Effects = v.Effects
+			if not Effects:FindFirstChild("InCombat") then
+				ClearedDemons = ClearedDemons + 1
+				v:Destroy()
+			end
+		end
+		
+		if ClearedDemons + 1 >= DemonCount then
+			break
+		end
+	end
+	warn(ClearedDemons.." demons cleared!")
+	
+	end
+end
+
+local function CreateDemon(SpawnCFrame,Spawn)
+	local DemonCount = 0
+	for i, v in pairs(workspace.LivingThings:GetChildren()) do
+		if IsDemon(v) then
+			DemonCount = DemonCount + 1
+		end
+	end
+	if DemonCount >= 100 then
+		return
+	end
+	
+	local Demon = DemonVariations[math.random(1,#DemonVariations)]:Clone()
+	Demon.Parent = workspace.LivingThings
+	
+	Demon:SetPrimaryPartCFrame(SpawnCFrame)
+	
+	local NewPacket = DemonAIPacket:Clone()
+	for i, v in pairs(NewPacket:GetChildren()) do
+		if v.ClassName == "Script" then
+			v.Disabled = false
+		end
+		v.Parent = Demon
+	end
+	
+	local Hairs = game.ReplicatedStorage.Assets.NPC_Hairs:GetChildren()
+	local Hair = Hairs[math.random(1,#Hairs)]:Clone()
+	Hair.Parent = Demon
+	
+	local DemonEyes = game.ReplicatedStorage.Assets.Faces.Male.Demon.Eyes:GetChildren()
+	local Eye = DemonEyes[math.random(1,#DemonEyes)]:Clone()
+	Eye.Parent = Demon.Head
+	
+	local DemonMouth = game.ReplicatedStorage.Assets.Faces.Mouths.Demon:GetChildren()
+	local Mouth = DemonMouth[math.random(1,#DemonMouth)]:Clone()
+	Mouth.Parent = Demon.Head
+	
+	Spawn.Value = Demon
+	Demon.Spawn.Value = Spawn
+end
+
+while wait(10) do
+	if not game["Run Service"]:IsStudio() then
+		if (Lighting.ClockTime <= 6) or (Lighting.ClockTime >= 18.5) then
+			local Spawns = DemonSpawns:GetChildren()
+			for _,Spawn in pairs(Spawns) do
+				local SpawnDemon = math.random(1, 4)
+				if SpawnDemon == 1 and Spawn:FindFirstChild("Child") and not Spawn:FindFirstChild("Child").Value then
+					wait(math.random(1, 2))
+					CreateDemon(Spawn.CFrame,Spawn:FindFirstChild("Child"))
+				end
+			end
+		end
+	else
+		for i = 1, 10 do
+			wait(math.random(1, 2))
+			CreateDemon(workspace.StudioDemonSpawn.CFrame, workspace.StudioDemonSpawn:FindFirstChild("Child"))
+		end
+		break
+	end
+	ScaleDemonCount()
+	wait(22.5)
+end

@@ -1,0 +1,120 @@
+local module = {}
+function sub(...)
+	coroutine.wrap(...)()
+end
+return function(character,blade,DMG)
+	local humanoid = character:WaitForChild("Humanoid")
+	local root = character:WaitForChild("HumanoidRootPart")
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	if character:FindFirstChild("CombatDisable") then
+		return
+	end
+	if not blade then
+		return
+	end
+	local damage = 4
+	if DMG then
+		damage = DMG
+	end
+	local Range = 3.5
+	local Diameter = 5
+	
+	local HitboxModule = require(game.ReplicatedStorage.Modules.HitboxModule)
+	local TagHumanoid = require(game.ServerScriptService.Modules.TagHumanoid)
+	local Combo = character:WaitForChild("Combo")
+	
+	local CDTime = 1
+	local AnimationSpeed = 1
+	local Delay = .35
+	
+	local CD = Instance.new("BoolValue")
+	CD.Name = "CombatDisable"
+	CD.Parent = character
+	
+	local NoJump = Instance.new("NumberValue")
+	NoJump.Name = "NoJump"
+	NoJump.Parent = character.Effects
+	
+	local Attack = Instance.new("BoolValue")
+	Attack.Name = "Attacking"
+	Attack.Parent = character
+	game.Debris:AddItem(Attack,CDTime + .2)
+	
+	local Anim = humanoid:LoadAnimation(script.Attack)
+	Anim:Play()
+	root.Heavy:Emit(1)
+	root.HeavySwing:Play()
+		sub(function()
+			humanoid.WalkSpeed = 7
+			wait(Delay)
+			humanoid.AutoRotate = false
+			wait(.8)
+			humanoid.AutoRotate = true
+			humanoid.WalkSpeed = character:WaitForChild("BaseSpeed").Value
+		end)
+	
+	local clashframe = Instance.new("BoolValue")
+	clashframe.Name = "ClashFrame"
+	clashframe.Parent = character
+	
+	wait(0.05)
+	game.Debris:AddItem(CD, CDTime)
+	game.Debris:AddItem(NoJump,CDTime + .2)
+	--root.Throw:Play()
+	blade.Trail.Enabled = true
+	sub(function()
+		wait(CDTime)
+		blade.Trail.Enabled = false
+	end)
+	wait(Delay)
+	game.Debris:AddItem(clashframe,.25)
+	Anim:AdjustSpeed(1.25)
+	
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	local targets = HitboxModule(character,Range,Diameter,true)
+	for i = 1, #targets do
+		if character:FindFirstChild("Stunned") then
+			break
+		end
+	if targets[i] and not character:FindFirstChild("Stunned") then
+		local target = targets[i]
+		local eroot = target.HumanoidRootPart
+		local ehum = target.Humanoid
+		
+		if target:FindFirstChild("ClashFrame") and character:FindFirstChild("ClashFrame") then
+			local clashmodule = require(game.ServerScriptService.Modules.ClashModule)
+			clashmodule.ClashCharacter(character,target)
+			clashmodule.ClashCharacter(target,character)
+			break
+		elseif target:FindFirstChild("PerfectBlock") then
+			local clashmodule = require(game.ServerScriptService.Modules.ClashModule)
+			clashmodule.PerfectBlock(target)
+			break
+		else
+		for i, v in pairs(eroot:GetChildren()) do
+			if v.ClassName == "BodyVelocity" then
+				v:Destroy()
+			end
+		end
+		local push = Instance.new("BodyVelocity")
+		push.MaxForce = Vector3.new(1,0,1) * 30000
+		push.Velocity = CFrame.new(root.Position,eroot.Position).lookVector * 120
+		push.Parent = eroot
+		
+		if target:FindFirstChild("Blocking") then
+			push.Velocity = CFrame.new(root.Position,eroot.Position).lookVector * 16
+			target:FindFirstChild("Blocking"):Destroy()
+		end
+		game.Debris:AddItem(push, .15)	
+		eroot.Slash:Emit(3)
+		target.HumanoidRootPart:FindFirstChild("Slash"..math.random(1,3)):Play()
+		TagHumanoid(character,target,{damage, .8, true})
+		
+		end
+	end	
+	end
+end

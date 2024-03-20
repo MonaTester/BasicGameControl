@@ -1,0 +1,125 @@
+local SlayerAIPacket = game.ServerStorage.SlayerAIPacket
+
+local SlayerSpawns = workspace.SlayerSpawns
+
+local Lighting = game.Lighting
+
+local SlayerVariations = game.ReplicatedStorage.SlayerVariations:GetChildren()
+
+function IsSlayer(target)
+	if target:FindFirstChild("NPC") and target:FindFirstChild("Slayer") then
+		return true
+	end
+end
+
+for a, b in pairs(workspace.SlayerSpawns:GetChildren()) do
+	if not b:FindFirstChild("Child") then
+		local child = Instance.new("ObjectValue")
+		child.Name = "Child"
+		child.Value = nil
+		child.Parent = b
+	end
+end
+
+function ScaleSlayerCount()
+	local LivingThings = workspace.LivingThings
+	local Players = game.Players
+	
+	local PlayerCount = #workspace.SlayerSpawns:GetChildren()
+	local PlayerCount = 10
+	local SlayerCount = 0
+	for i, v in pairs(Players:GetChildren()) do
+		local stats = game.ReplicatedStorage[".stats"]:FindFirstChild(v.Name)
+		if v and v:IsA("Player") and (stats and stats.Alignment.Value == "Demon") then
+			PlayerCount = PlayerCount + 1
+		end
+	end
+	
+	for i, v in pairs(LivingThings:GetChildren()) do
+		if IsSlayer(v) then
+			SlayerCount = SlayerCount + 1
+		end
+	end
+	
+	if SlayerCount > PlayerCount then
+	
+	-- ...Clearing demons... --
+	
+	local ClearedSlayers = 0
+	for i, v in pairs(LivingThings:GetChildren()) do
+		if IsSlayer(v) then
+			local Effects = v.Effects
+			if not Effects:FindFirstChild("InCombat") then
+				ClearedSlayers = ClearedSlayers + 1
+				v:Destroy()
+			end
+		end
+		
+		if ClearedSlayers + 1 >= SlayerCount then
+			break
+		end
+	end
+	warn(ClearedSlayers.." slayers cleared!")
+	
+	end
+end
+
+local function CreateSlayer(SpawnCFrame,Spawn)
+	local DemonCount = 0
+	for i, v in pairs(workspace.LivingThings:GetChildren()) do
+		if IsSlayer(v) then
+			DemonCount = DemonCount + 1
+		end
+	end
+	if DemonCount >= 30 then
+		return
+	end
+	local Slayer = SlayerVariations[math.random(1,#SlayerVariations)]:Clone()
+	Slayer.Parent = workspace.LivingThings
+	
+	Slayer:SetPrimaryPartCFrame(SpawnCFrame)
+	
+	local NewPacket = SlayerAIPacket:Clone()
+	for i, v in pairs(NewPacket:GetChildren()) do
+		if v.ClassName == "Script" then
+			v.Disabled = false
+		end
+		v.Parent = Slayer
+	end
+	
+	local Hairs = game.ReplicatedStorage.Assets.NPC_Hairs:GetChildren()
+	local Hair = Hairs[math.random(1,#Hairs)]:Clone()
+	Hair.Parent = Slayer
+	
+	local HumanEyes = game.ReplicatedStorage.Assets.Faces.Male.Human.Eyes:GetChildren()
+	local Eye = HumanEyes[math.random(1,#HumanEyes)]:Clone()
+	Eye.Parent = Slayer.Head
+	
+	local HumanMouth = game.ReplicatedStorage.Assets.Faces.Mouths.Human:GetChildren()
+	local Mouth = HumanMouth[math.random(1,#HumanMouth)]:Clone()
+	Mouth.Parent = Slayer.Head
+	
+	Spawn.Value = Slayer
+	Slayer.Spawn.Value = Spawn
+end
+
+while wait(10) do
+	if not game["Run Service"]:IsStudio() then
+		local Spawns = SlayerSpawns:GetChildren()
+		for _,Spawn in pairs(Spawns) do
+			local SpawnDemon = math.random(1,2)
+			if SpawnDemon == 1 and Spawn:FindFirstChild("Child") and not Spawn:FindFirstChild("Child").Value then
+				wait(math.random(1, 2))
+				CreateSlayer(Spawn.CFrame,Spawn:FindFirstChild("Child"))
+			end
+		end
+	else
+		-for i = 1, 10 do
+			wait(math.random(1, 2))
+			CreateSlayer(workspace.StudioSlayerSpawn.CFrame, workspace.StudioSlayerSpawn:FindFirstChild("Child"))
+		end
+		break
+	end
+	ScaleSlayerCount()
+	wait(22.5)
+end

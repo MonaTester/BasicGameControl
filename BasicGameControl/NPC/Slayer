@@ -1,0 +1,67 @@
+while wait(0.25) do
+	for a,b in pairs(workspace.LivingThings:GetChildren()) do
+		if b:FindFirstChild("NPC") and not b:FindFirstChild("DemonDeath") then
+			spawn(function()
+				if b and b:FindFirstChild("HumanoidRootPart") and b:FindFirstChild("Target") and b:FindFirstChild("Level") then
+					local MaxRange = 100
+					local Character = b
+					local Target = Character.Target
+					local Level = Character.Level.Value
+					local Root = Character:FindFirstChild("HumanoidRootPart")
+					if Root then
+					local MainModule = require(Character.MainModule)
+					local Moves = require(Character.Moves)
+					--Root:SetNetworkOwner(nil)
+					
+					local ToolModule = require(game.ServerScriptService.Modules.ToolModule)
+					
+					local MoveCD = Character.MoveCD
+					if Character.Effects:FindFirstChild("InCombat") then
+						ToolModule.EquipNichirin(Character)
+					else
+						ToolModule.UnequipNichirin(Character)
+					end
+					MainModule.TagPlayer(MaxRange)
+					if Target.Value then
+						if Target.Value.Parent == workspace.LivingThings then
+							MainModule.FollowTarget()
+						else
+							Target.Value = nil
+						end						
+					end
+					if Target.Value and Target.Value:FindFirstChild("HumanoidRootPart") then
+						local eroot = Target.Value:FindFirstChild("HumanoidRootPart")
+						if eroot then
+							local change = (Root.Position - eroot.Position).magnitude
+							if change <= 7 then
+								local WantTo = math.random(1,3)
+								if Level >= 2 and MoveCD.Value == true and WantTo == 1 then
+									if #Moves > 0 then
+										local Move = Moves[math.random(1,#Moves)]
+										if Move then
+											MoveCD.Value = false
+											local SkillCaster = require(game.ServerScriptService.SkillCaster)
+											SkillCaster(Character,Move,{Character:FindFirstChild("SwordModel").BladePart})
+											delay(2,function()
+											MoveCD.Value = true
+											end)
+										end
+									end
+								else
+									if Target.Value:FindFirstChild("Attacking") and not Character:FindFirstChild("Attacking") then
+										wait(.08)
+										MainModule.Block()
+									else
+										MainModule.Unblock()
+										MainModule.Attack()
+									end
+								end
+							end
+						end
+					end
+					end
+				end
+			end)
+		end
+	end
+end

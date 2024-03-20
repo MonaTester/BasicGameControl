@@ -1,0 +1,60 @@
+local slashservice = script.Parent
+local slashmodel = game.ReplicatedStorage.Slash:Clone()
+slashmodel.Name = "SlashEffect"
+slashmodel.PrimaryPart.Transparency = 1
+slashmodel.PrimaryPart.FrontSurface = Enum.SurfaceType.Smooth
+
+function sub(...)
+	coroutine.wrap(...)()
+end
+
+function slash_it(cfrem,color,rotationincrecement,angle)
+	rotationincrecement = math.rad(rotationincrecement)
+	angle = math.rad(angle)
+	
+	local newSlash = slashmodel:Clone()
+	newSlash:SetPrimaryPartCFrame(cfrem)
+	newSlash.SlashPart.BrickColor = color
+	newSlash.PrimaryPart.Transparency = 0
+	
+	local slashPart = newSlash.SlashPart
+	
+	slashPart.CFrame = slashPart.CFrame * CFrame.Angles(0,angle,0)
+	newSlash:SetPrimaryPartCFrame(newSlash.PrimaryPart.CFrame * CFrame.Angles(0,0,angle))
+	
+	if 1 == 1 then
+	sub(function()
+		for i = 1,5 do game["Run Service"].Heartbeat:wait()
+			newSlash:SetPrimaryPartCFrame(newSlash.PrimaryPart.CFrame * CFrame.Angles(0,-(rotationincrecement/5),0))
+		end
+		local tween = game.TweenService:Create(slashPart,TweenInfo.new(.1,Enum.EasingStyle.Linear,Enum.EasingDirection.Out),{CFrame = slashPart.CFrame * CFrame.new(0,0,-2) * CFrame.Angles(rotationincrecement,0,0);Transparency = 1;})
+		tween:Play()
+		for i = 1,5 do game["Run Service"].Heartbeat:wait()
+			newSlash:SetPrimaryPartCFrame(newSlash.PrimaryPart.CFrame * CFrame.Angles(0,-(rotationincrecement/5),0))
+		end
+	end)
+	end
+
+	local tween = game.TweenService:Create(slashPart,TweenInfo.new(.3,Enum.EasingStyle.Linear,Enum.EasingDirection.Out),{CFrame = slashPart.CFrame * CFrame.new(0,0,-2) * CFrame.Angles(rotationincrecement,0,0);Transparency = 1;})
+	tween:Play()
+	
+	newSlash.Parent = workspace.Effects
+	game.Debris:AddItem(newSlash,.35)
+end
+
+function childadded(child)
+	if child:FindFirstChild("Slash") then
+		
+		if not child:FindFirstChild("RotationIncrecement") then
+			return
+		end
+		
+		local rI = child:FindFirstChild("RotationIncrecement").Value
+		local cL = child:FindFirstChild("Colored").Value
+		local ang = child:FindFirstChild("Angle").Value
+		local cfrem = child.CFrame
+		game.Debris:AddItem(child,.2)
+		slash_it(cfrem,cL,rI,ang)
+	end
+end
+workspace.Events.ChildAdded:Connect(childadded)

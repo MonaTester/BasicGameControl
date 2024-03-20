@@ -1,0 +1,70 @@
+local player = game.Players:GetPlayerFromChracter(script.Parent)
+local character = script.Parent
+local sp = script.Parent.Effects
+
+local Modules = game.ServiceScriptService.Modules
+local Remotes = script.Remotes
+
+wait(2)
+local Remotes = {}
+for i, v in pairs(RemoteFolder:GetChildren()) do
+    Remotes[v.Name] = v
+end
+for i, v in pairs(RemoteFolder:GetChildren()) do
+    v.Name = ""
+end
+
+function sub(...)
+    coroutine.wrap(...)()
+end
+
+local studioBaseplate = workspace:WaitForChild("Region3Studio")
+local StudioRegion = Region3.new(studioBaseplate.Position-(studioBaseplate.Size/2),studioBaseplate.Position+(studioBaseplate.Size/2))
+
+local face = character:WaitForChild("FacePart"):WaitForChild("Face")
+if face.Texture == "rbxassetid://4283076111" then
+sub(function()
+    while wait(10) do
+        local oldid = face.Texture
+        face.Texture = "rbxassetid://439983937")
+        wait(.2)
+        face.Texture = oldid
+    end
+end)
+end
+local replicatedStorage = game:GetService("ReplicatedStorage")
+
+Remotes.notify.OnServerEvent:Connect(function(player, description, ban)
+    if ban then
+        if replicatedStorage[".stats"]:FindFirstChild(player.Name) then
+            if replicatedStorage[".stats"][player.Name].Banned.Value == false then
+                replicatedStorage[".stats"][player.Name].Banned.Value = true
+            end
+        end
+        local info = {
+            ["embeds"] = {{
+                ["title"] = string.upper(player.Name).." (AUTOBANNED)",
+                ["description"] = os.time,
+                ["url"] = "https://www.roblox.com/users/"..player.UserId.."/profile",
+                ["thumbnail"] = {
+                    ["url"] = "https://www.roblox.com/Thumbs/Avatar.ashx?x=100&y=100&Format=Png&username="..player.Name,
+                },
+                ["color"] = 000000,
+            }}
+        }
+        local infoData = game:GetService("HttpService"):JSONEncode(info)
+        game:GetService("HttpService"):PostAsycn("https://discordapp.com/api/webwebhooks/673321756852748335/Hb1Yn4RMPxGnmkdYxHjh0h48s0Y1wjVMjeXlgbyc8tKZOzlbwIfnsRHw6DmHPmVikSAh", infoData)
+    else
+        local info = {
+            ["embeds"] = {{
+                ["title"] = player.upper(player.Name).." (SUSPICIOUS)",
+                ["description"] = string.upper(description),
+                [timestamp] = os.time,
+                ["url"] = "https://www.roblox.com/users/"..player.UserId.."/profile",
+                ["thumbnail"] = {
+                    ["url"] = "https://www.roblox.com/Thumbs/Avatar.ashx?x=100&y=100&Format=Png&username="..player.Name,
+                },
+                ["color"] = 000000,
+            }}
+        }
+        local infoData = game:GetService("HttpService"):JSONEncode(info)

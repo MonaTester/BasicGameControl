@@ -1,0 +1,43 @@
+game.Players.PlayerAdded:Connect(function(player)
+	repeat wait()
+	until player.Character
+	player.Chatted:Connect(function(message)
+		if player.Character:FindFirstChild("Knocked") then
+			return
+		end
+		message = string.lower(message)
+		
+		for name,pose in pairs(script:GetChildren()) do
+			local poseName = string.lower(pose.Name)
+		local matchPrefix = string.match(message,"/e "..poseName)
+		local matched
+		if matchPrefix then
+			matched = true
+			message = string.gsub(message,"/e ","")
+		end
+		if matched then
+			local hum = player.Character.Humanoid
+			if not script:FindFirstChild(message) then
+				return
+			end
+			local anim = hum:LoadAnimation(script:FindFirstChild(message))
+			anim.Name = "Pose"
+			anim:Play()
+			
+			local cd = Instance.new("BoolValue")
+			cd.Name = "CombatDisable"
+			cd.Parent = player.Character
+			
+			repeat wait(.5)
+				print(hum.MoveDirection.magnitude)
+			until anim.IsPlaying == false or hum.MoveDirection.Magnitude > 0
+			if anim.IsPlaying == true then
+				anim:Stop()
+			end
+			wait(0.05)
+			cd:Destroy()
+		end
+		
+		end
+	end)
+end)

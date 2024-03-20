@@ -1,0 +1,311 @@
+local module = {}
+function sub(...)
+	coroutine.wrap(...)()
+end
+
+local bolt = Instance.new("Part")
+bolt.Name = "Electrode"
+bolt.BrickColor = BrickColor.new("Bright yellow")
+bolt.Material = "Neon"
+bolt.CanCollide = false
+bolt.Anchored = true
+bolt.Transparency = .5
+bolt.Size = Vector3.new(.4,.4,0)
+
+module.HorizontalLightning = function(cframe,range,Color)
+	
+	local from
+	local too
+	
+	local lightning = script.Lightning:Clone()
+	lightning.Part1.CFrame = cframe * CFrame.new(math.random(-.2,.2),0,0)
+	lightning.Part2.CFrame = lightning.Part1.CFrame * CFrame.new(math.random(-.2,.2),math.random(-5,5),-range)
+	lightning.Parent = workspace.Effects
+	
+	from = lightning.Part1.Position
+	too = lightning.Part2.Position
+	
+	local function ShootElectrode()
+		local lastPos = from
+		local step = 16
+		local off = 32
+		
+		local distance = (from-too).magnitude
+		if distance > range then distance = range end
+		
+		for i= 0,distance,step do
+			local from = lastPos
+			
+			local offset = Vector3.new(
+				math.random(-off,off),
+				math.random(-off,off),
+				math.random(-off,off)
+			)/10
+			
+			local too = from + -(from-too).unit*step + offset
+			
+			local p = bolt:Clone()
+			p.Parent = workspace.Effects
+			p.BrickColor = BrickColor.new("Baby blue")
+			if Color then
+				p.BrickColor = Color
+			end
+			p.Size = Vector3.new(2,2,(from-too).magnitude)
+			p.CFrame = CFrame.new(from:Lerp(too,.5),too)
+			game.Debris:AddItem(p,.12)
+			game.TweenService:Create(p,TweenInfo.new(.12,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Transparency = .5;Size = Vector3.new(.1,.1,(from-too).magnitude);}):Play()--]]
+			
+			lastPos = too
+		end
+		lightning:Destroy()
+	end
+	ShootElectrode()
+end
+
+module.PointLightning = function(point1,point2,Thickness,Color,Time)
+	local duration = .2
+	if Time then
+		duration = Time
+	end
+	local from
+	local too
+	
+	local lightning = script.Lightning:Clone()
+	lightning.Part1.Position = point1
+	lightning.Part2.Position = point2
+	lightning.Parent = workspace.Effects
+	
+	from = lightning.Part1.Position
+	too = lightning.Part2.Position
+	
+	local function ShootElectrode()
+		local lastPos = from
+		local step = 16
+		local off = 32
+		
+		local distance = (from-too).magnitude
+		
+		for i= 0,distance,step do
+			local from = lastPos
+			
+			local offset = Vector3.new(
+				math.random(-off,off),
+				math.random(-off,off),
+				math.random(-off,off)
+			)/10
+			
+			local too = from + -(from-too).unit*step + offset
+			
+			local p = bolt:Clone()
+			p.Parent = workspace.Effects
+			p.Size = Vector3.new(.1,.1,(from-too).magnitude)
+			p.Transparency = 0
+			game.TweenService:Create(p,TweenInfo.new(.1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Size = Vector3.new(Thickness,Thickness,(from-too).magnitude);Transparency = 0}):Play()
+			p.CFrame = CFrame.new(from:Lerp(too,.5),too)
+			if Color then
+				p.BrickColor = Color
+			end
+			game.Debris:AddItem(p,duration*2)
+			delay(duration,function()
+				game.TweenService:Create(p,TweenInfo.new(duration,Enum.EasingStyle.Linear,Enum.EasingDirection.Out),{Transparency = 1;}):Play()
+			end)--]]
+			
+			lastPos = too
+			wait(.1)
+		end
+		lightning:Destroy()
+	end
+	sub(function()
+	ShootElectrode()
+	end)
+end
+
+module.FloatRock = function(root,range)
+	local rockframe = root.CFrame * CFrame.new(math.random(-range,range),-5,math.random(-range,range))
+	
+	local downRay = Ray.new(root.Position,Vector3.new(0,-999,0))
+	local a,b = workspace:FindPartOnRay(downRay,root.Parent,false,true)
+	
+	local rock = Instance.new("Part")
+	rock.Name = "Rock"
+	rock.Anchored = false
+	rock.CanCollide = false
+	rock.Size = Vector3.new(math.random(2,5),math.random(2,5),math.random(2,5))
+	rock.CFrame = rockframe
+	rock.Material = "Slate"
+	rock.TopSurface = "Smooth"
+	rock.BottomSurface = "Smooth"
+	if a then
+		rock.BrickColor = a.BrickColor
+	end
+	
+	game.Debris:AddItem(rock,1)
+	
+	local bv = Instance.new("BodyVelocity")
+	bv.MaxForce = Vector3.new(1,1,1)*30000
+	bv.Velocity = Vector3.new(0,13,0)
+	bv.Parent = rock
+	
+	rock.Parent = workspace.Effects
+	
+	local tween = game.TweenService:Create(rock,TweenInfo.new(1,Enum.EasingStyle.Linear,Enum.EasingDirection.Out),{Transparency = 1;Orientation = Vector3.new(math.random(-360,360),math.random(-360,360),math.random(-360,360))})
+	tween:Play()
+end
+
+module.DisplayHitEffect = function(root)
+	local Attachment = root:FindFirstChild("HitEffect")
+	if not Attachment then
+		return
+	end
+	sub(function()
+		Attachment.hit:Emit(1)
+		wait()
+		Attachment.hitt:Emit(1)
+		wait()
+		Attachment.hittt:Emit(1)
+	end)
+end
+
+module.BlockBreak = function(root)
+	local humanoid = root.Parent.Humanoid
+	local anim = humanoid:LoadAnimation(script.BlockBroken)
+	anim:Play()
+	anim:AdjustSpeed(.8)
+	
+	root.GlassShatter:Play()
+	root.Glass1:Emit(2)
+	root.Glass2:Emit(2)
+	root.Shade.Enabled = true
+	root.Glass1.Enabled = true
+	root.Glass2.Enabled = true
+	sub(function()
+		wait(3)
+		anim:Stop()
+		root.Shade.Enabled = false
+		root.Glass1.Enabled = false
+		root.Glass2.Enabled = false
+	end)
+end
+
+module.Debris = function(pos,Number,CanColl)
+	local ignoreList = {workspace.Effects,workspace.Projectiles,workspace.LivingThings,workspace.NPCS}
+	local ray = Ray.new(pos,Vector3.new(0, -999999, 0))
+	local a,b = workspace:FindPartOnRayWithIgnoreList(ray,ignoreList)
+	
+	local BColor = BrickColor.new("Medium stone grey")
+	if a then
+	BColor = a.BrickColor
+	end
+	
+	local CanCollide = CanColl
+	if CanCollide == nil then
+		CanCollide = true
+	end
+	
+	spawn(function()
+		for i = 1, Number do
+			local rock = Instance.new('Part', workspace.Effects)
+			rock.Position = pos
+			rock.CanCollide = CanCollide
+			rock.CFrame = rock.CFrame * CFrame.new(math.random(-3, 3),0,math.random(-3, 3)) * CFrame.Angles(math.random(-360, 360), math.random(-360, 360), math.random(-360, 360))
+			rock.BrickColor = BColor
+			rock.Size = Vector3.new(math.random(1, 4), math.random(3, 5), math.random(1, 4))
+			rock.Velocity = CFrame.new(pos,rock.Position).lookVector * 30 + Vector3.new(0, 30, 0)
+			game:GetService('Debris'):AddItem(rock, 3)
+			delay(2,function()
+				sub(function()
+				for i = 1, 10 do wait()
+					rock.Transparency = rock.Transparency + .1
+				end
+				end)
+			end)
+		end
+	end)
+end
+
+module.ProjectileShockwave = function(cfrem,Time,s_ize,cfremOffset,BColor)
+	local EffectDire = game.ServerStorage.Effects
+	local ShockwaveProj = EffectDire.ShockwaveProjectile:Clone()
+	ShockwaveProj.Parent = workspace.Effects
+	ShockwaveProj.CFrame = cfrem
+	if BColor then
+		ShockwaveProj.BrickColor = BColor
+	end
+	game.Debris:AddItem(ShockwaveProj,Time * 2)
+	
+	local tween1 = game.TweenService:Create(ShockwaveProj,TweenInfo.new(Time,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Size = s_ize, CFrame = ShockwaveProj.CFrame * CFrame.Angles(0, 0, math.rad(180)) * CFrame.new(0,0,cfremOffset)})
+	tween1:Play()
+	delay(Time,function()
+	local tween1 = game.TweenService:Create(ShockwaveProj,TweenInfo.new(.5,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Transparency = 1;})
+	tween1:Play()	
+	end)
+end
+
+module.Spiral = function(cfrem,Time,s_ize,cfremOffset,BColor)
+	local EffectDire = game.ServerStorage.Effects
+	local ShockwaveProj = EffectDire.Spiral:Clone()
+	ShockwaveProj.Parent = workspace.Effects
+	ShockwaveProj.CFrame = cfrem
+	if BColor then
+		ShockwaveProj.BrickColor = BColor
+	end
+	game.Debris:AddItem(ShockwaveProj,Time+.2)
+	
+	local tween1 = game.TweenService:Create(ShockwaveProj,TweenInfo.new(Time,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Size = s_ize, CFrame = ShockwaveProj.CFrame * CFrame.Angles(0, math.rad(180), 0) * CFrame.new(0,cfremOffset,0),Transparency = 1;})
+	tween1:Play()
+end
+
+module.CircleShockwave = function(cfrem,Time,s_ize,BColor)
+	local EffectDire = game.ServerStorage.Effects
+	local ShockwaveProj = EffectDire.ShockwaveCircle:Clone()
+	ShockwaveProj.Parent = workspace.Effects
+	ShockwaveProj.Size = Vector3.new(2,2,2)
+	ShockwaveProj.CFrame = cfrem
+	if BColor then
+		ShockwaveProj.BrickColor = BColor
+	end
+	game.Debris:AddItem(ShockwaveProj,Time + .2)
+	
+	local tween1 = game.TweenService:Create(ShockwaveProj,TweenInfo.new(Time,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Size = s_ize, Transparency = 1;})
+	tween1:Play()
+end
+
+module.Smoke = function(Pos,Time)
+	if Time <= 4 then
+		Time = 5
+	end
+	local smoke = game.ServerStorage.Smoke:Clone()
+	smoke.Parent = workspace.Effects
+	smoke.Position = Pos
+	game.Debris:AddItem(smoke,Time)
+	sub(function()
+	wait(Time - 4)
+	smoke.SmokeParticle.Enabled = false
+	end)
+end
+
+module.Explosion = function(cfrem,Time,sizeChange)
+	local EffectDire = game.ServerStorage.Effects
+	local ShockwaveProj = EffectDire.ExplosionModel:Clone()
+	ShockwaveProj.Parent = workspace.Effects
+	ShockwaveProj:SetPrimaryPartCFrame(cfrem)
+
+	game.Debris:AddItem(ShockwaveProj,Time + 2)
+	
+	for i, v in pairs(ShockwaveProj:GetDescendants()) do
+		if v.ClassName == "MeshPart" or v.ClassName == "Part" then
+			local TotalChange = v.Size + sizeChange
+			if v.Name == "Mesh1" or v.Name == "Mesh2" then
+				TotalChange = v.Size + (sizeChange * 1.3)
+			end
+			local tween1 = game.TweenService:Create(v,TweenInfo.new(Time,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Size = v.Size + sizeChange})
+			tween1:Play()
+			delay(Time,function()
+			local tween1 = game.TweenService:Create(v,TweenInfo.new(1,Enum.EasingStyle.Sine,Enum.EasingDirection.Out),{Transparency = 1; Size = v.Size + Vector3.new(5, 5, 5)})
+			tween1:Play()	
+			end)
+		end
+	end
+end
+
+return module

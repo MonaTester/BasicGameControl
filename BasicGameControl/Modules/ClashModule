@@ -1,0 +1,129 @@
+local module = {}
+
+module.ClashCharacter = function(character,clasher)
+	if character:FindFirstChild("ClashFrame") then
+		character:FindFirstChild("ClashFrame"):Destroy()
+	end
+	local humanoid = character.Humanoid
+	local root = character.HumanoidRootPart
+	
+	local player = game.Players:GetPlayerFromCharacter(character)
+	if player then
+		game.ReplicatedStorage.Remotes.ScreenShake:FireClient(player,.3,1)
+	end
+	
+	for a, b in pairs(humanoid:GetPlayingAnimationTracks()) do
+		if b.Name ~= "Idle" then
+		b:Stop()
+		end
+	end
+	
+	local anim = humanoid:LoadAnimation(script.Clash)
+	anim:Play()
+	
+	root.SparkLight.Enabled = true
+	spawn(function()
+		wait(.3)
+		root.SparkLight.Enabled = false
+	end)
+	root.Sparks:Emit(10)
+	root.CUT:Emit(1)
+	root["BladeClash"..math.random(1,3)]:Play()
+	
+	root.CFrame = CFrame.new(root.Position,clasher.PrimaryPart.Position)
+	humanoid.AutoRotate = false
+	
+	for i, v in pairs(root:GetChildren()) do
+			if v.ClassName == "BodyVelocity" then
+				v:Destroy()
+			end
+		end
+	
+	local bOP = Instance.new("BodyVelocity")
+	bOP.MaxForce = Vector3.new(1,0,1)*30000
+	bOP.Velocity = CFrame.new(clasher.PrimaryPart.Position,root.Position).lookVector * 90
+	bOP.Parent = root
+	game.Debris:AddItem(bOP,.3)
+	
+	local cd = Instance.new("BoolValue")
+	cd.Name = "CombatDisable"
+	cd.Parent = character
+	wait(0.05)
+	game.Debris:AddItem(cd,.5)
+	
+	local nohurt = Instance.new("BoolValue")
+	nohurt.Name = "NoHurt"
+	nohurt.Parent = character
+	game.Debris:AddItem(nohurt,.5)
+	delay(.4,function()
+		humanoid.AutoRotate = true
+	end)
+end
+
+module.MiniClash = function(character,clasher)
+	if character:FindFirstChild("MiniClashFrame") then
+		character:FindFirstChild("MiniClashFrame"):Destroy()
+	end
+	local humanoid = character.Humanoid
+	local root = character.HumanoidRootPart
+	
+	local player = game.Players:GetPlayerFromCharacter(character)
+	if player then
+		game.ReplicatedStorage.Remotes.ScreenShake:FireClient(player,.3,1)
+	end
+	
+	root.SparkLight.Enabled = true
+	spawn(function()
+		wait(.3)
+		root.SparkLight.Enabled = false
+	end)
+	root.Sparks:Emit(10)
+	root["BladeClash"..math.random(1,3)]:Play()
+	
+	for i, v in pairs(root:GetChildren()) do
+			if v.ClassName == "BodyVelocity" then
+				v:Destroy()
+			end
+		end
+	
+	local bOP = Instance.new("BodyVelocity")
+	bOP.MaxForce = Vector3.new(1,0,1)*30000
+	bOP.Velocity = CFrame.new(clasher.PrimaryPart.Position,root.Position).lookVector * 20
+	bOP.Parent = root
+	game.Debris:AddItem(bOP,.23)
+end
+
+module.PerfectBlock = function(character)
+	if character:FindFirstChild("PerfectBlock") then
+		character:FindFirstChild("PerfectBlock"):Destroy()
+	else
+		return
+	end
+	
+	local humanoid = character.Humanoid
+	local root = character.HumanoidRootPart
+	
+	for a, b in pairs(humanoid:GetPlayingAnimationTracks()) do
+		if b.Name ~= "Idle" then
+		b:Stop()
+		end
+	end
+	
+	local anim = humanoid:LoadAnimation(script.Block)
+	anim:Play()
+	
+	root.Sparks:Emit(10)
+	root.CUT:Emit(1)
+	root["BladeClash"..math.random(1,3)]:Play()
+	root.SparkLight.Enabled = true
+	spawn(function()
+		wait(.3)
+		root.SparkLight.Enabled = false
+	end)
+	local iframe = Instance.new("BoolValue")
+	iframe.Name = "NoHurt"
+	iframe.Parent = character
+	game.Debris:AddItem(iframe,.4)
+end
+
+return module

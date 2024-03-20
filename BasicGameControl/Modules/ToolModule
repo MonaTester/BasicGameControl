@@ -1,0 +1,129 @@
+local module = {}
+function foundkatanatool(char)
+	wait(.1)
+	local tool = char:FindFirstChildWhichIsA("Tool")
+	if tool then
+		local typ = tool:FindFirstChild("Type")
+		if typ and typ.ClassName == "StringValue" and typ.Value == "Sword" then
+			return true
+		end
+	end
+end
+module.EquipNichirin = function(character)
+	local model = character:FindFirstChild("SwordModel")
+	if model and model:IsA("Model") and character:FindFirstChild("Humanoid") then
+		local anim = character.Humanoid:LoadAnimation(script.Idle)
+		anim:Play()
+		
+		if character.EquippedKatana.Value == false then
+			character.HumanoidRootPart.UnSheathe:Play()
+			local unsheatheanim = character.Humanoid:LoadAnimation(script.UnSheathe)
+			unsheatheanim:Play()
+			unsheatheanim:AdjustSpeed(.5)
+		end
+		
+		local opensheathe = character.Humanoid:LoadAnimation(script.OpenSheathe)
+		opensheathe:Play()
+		
+		local sheathe = character.Humanoid:LoadAnimation(script.HoldSheathe)
+		sheathe:Stop()
+		
+		character.EquippedKatana.Value = true
+		
+		local weld = model.Handle:FindFirstChild("HandleWeld")
+		if weld then
+		weld.Part0 = character:FindFirstChild("Right Arm")
+		weld.C0 = CFrame.new(0, -1, 0) * CFrame.Angles(math.rad(270),math.rad(180),math.rad(90)) * CFrame.Angles(0, math.rad(90), 0)
+		end
+	end
+end
+
+module.UnequipNichirin = function(character)
+	local model = character:FindFirstChild("SwordModel")
+	if model and model:IsA("Model") and not foundkatanatool(character) and character:FindFirstChild("Humanoid") then
+		local anim = character.Humanoid:LoadAnimation(script.Idle)
+		anim:Stop()--]]
+	
+		local opensheathe = character.Humanoid:LoadAnimation(script.OpenSheathe)
+		opensheathe:Stop()
+		
+		local sheathe = character.Humanoid:LoadAnimation(script.HoldSheathe)
+		sheathe:Play()
+
+		local toolFind = character:FindFirstChildWhichIsA("Tool")
+		if (toolFind) or (toolFind and toolFind:FindFirstChild("Blade")) then
+		else
+			local anim = character.Humanoid:LoadAnimation(script.Sheathe)
+			anim:Play()
+		end
+		character.HumanoidRootPart.Sheathe:Play()
+			
+		local anim = character.Humanoid:LoadAnimation(script.Sheathe)
+		anim:Play()
+		anim:AdjustSpeed(.8)
+		character.EquippedKatana.Value = false
+		
+		local weld = model.Handle:FindFirstChild("HandleWeld")
+		if weld then
+		delay(.12,function()
+			if not foundkatanatool(character) then
+		weld.Part0 = character:WaitForChild("Torso")
+		weld.C0 = CFrame.new(-1, -.1, -1.2) * CFrame.Angles(math.rad(200),math.rad(180),math.rad(90))
+			end
+		end)
+		end
+	end
+end
+
+module.EquipAxeBall = function(character)
+	local model = character:FindFirstChild("SwordModel")
+	if model and model:IsA("Model") then
+		local weld = model.Handle1:WaitForChild("HandleWeld")
+		weld.Part0 = character:WaitForChild("Right Arm")
+		
+		local weld2 = model.Handle1:WaitForChild("HandleWeld")
+		weld2.Part0 = character:WaitForChild("Right Arm")
+		weld.C0 = CFrame.new(0, -1, 0) * CFrame.Angles(math.rad(270),math.rad(180),math.rad(90)) * CFrame.Angles(0, math.rad(90), 0)
+	end
+end
+
+module.UnequipAxeBall = function(character)
+	local model = character:FindFirstChild("SwordModel")
+	if model and model:IsA("Model") then
+		local anim = character.Humanoid:LoadAnimation(script.Idle)
+		anim:Stop()
+		local toolFind = character:FindFirstChildWhichIsA("Tool")
+		if (toolFind) or (toolFind and toolFind:FindFirstChild("Blade")) then
+		else
+			local anim = character.Humanoid:LoadAnimation(script.Sheathe)
+			anim:Play()
+		end
+		local weld = model.Handle:WaitForChild("HandleWeld")
+		weld.Part0 = character:WaitForChild("Torso")
+		weld.C0 = CFrame.new(-1, -.1, -1.2) * CFrame.Angles(math.rad(200),math.rad(180),math.rad(90))
+	end
+end
+
+module.EquipGun = function(character)
+	local model = character:FindFirstChild("GunModel")
+	if model and model:IsA("Model") then
+		local anim = character.Humanoid:LoadAnimation(script.Gun.Idle)
+		anim:Play()
+		local weld = model.Handle:WaitForChild("HandleWeld")
+		weld.Part0 = character:WaitForChild("Right Arm")
+		weld.C0 = CFrame.new(0, -1, 0) * CFrame.Angles(math.rad(90),math.rad(-90),math.rad(90)) * CFrame.Angles(0, math.rad(90), 0)
+	end
+end
+
+module.UnequipGun = function(character)
+	local model = character:FindFirstChild("GunModel")
+	if model and model:IsA("Model") then
+		local anim = character.Humanoid:LoadAnimation(script.Gun.Idle)
+		anim:Stop()
+		local weld = model.Handle:WaitForChild("HandleWeld")
+		weld.Part0 = character:WaitForChild("Torso")
+		weld.C0 = CFrame.new(-1, -.1, -1.2) * CFrame.Angles(math.rad(60),math.rad(180),0)
+	end
+end
+
+return module

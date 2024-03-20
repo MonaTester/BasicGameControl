@@ -1,0 +1,37 @@
+repeat wait()
+until game.Players.LocalPlayer.Character
+local character = game.Players.LocalPlayer.Character
+local mouse = game.Players.LocalPlayer:GetMouse()
+
+function GetMouse()
+	return mouse.Hit
+end
+
+function CameraShake(Dur,In)
+	local modl = require(game.ReplicatedStorage.Modules.CameraShaker)
+	modl.ShakeScreen(Dur,In)
+end
+
+game.ReplicatedStorage.Remotes.ScreenShake.OnClientEvent:Connect(CameraShake)
+
+game.ReplicatedStorage.Remotes.GetMouse.OnClientInvoke = function()
+	return mouse.Hit
+end
+
+game.ReplicatedStorage.Remotes.EffectRemote.OnClientEvent:Connect(function(...)
+	local args = ...
+	local Function = args[1]
+	local FunctionArgs = args[2]
+	
+	local Module = require(script.EffectModule)
+	Module[Function](FunctionArgs)
+	print("AGAIN?")
+end)
+
+game["Run Service"].RenderStepped:Connect(function()
+	if character:WaitForChild("Effects"):FindFirstChild("InCombat") then
+		script.Parent.InCombat.Enabled = true
+	else
+		script.Parent.InCombat.Enabled = false
+	end
+end)

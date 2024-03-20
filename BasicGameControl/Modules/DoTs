@@ -1,0 +1,51 @@
+local module = {}
+function sub(...)
+	coroutine.wrap(...)()
+end
+function module:PoisonTarget(target)
+	local character = target
+	local root = character.HumanoidRootPart
+	root.Poison.Enabled = true
+	
+	local PoisonDuration = 6
+	
+	local TagHumanoid = require(game.ServerScriptService.Modules.TagHumanoid)
+	
+	sub(function()
+		for i = 1, (PoisonDuration * 10) do game["Run Service"].Heartbeat:wait()
+			TagHumanoid(character,target,{.1,nil,nil,true},true,true)
+		end
+		root.Poison.Enabled = false
+	end)
+end
+
+function module:ProcFire(target)
+	local character = target
+	local root = character.HumanoidRootPart
+	local TotalBurnings = 0
+	for i, v in pairs(character.Effects:GetChildren()) do
+		if v.Name == "Burning" then
+			TotalBurnings = TotalBurnings + 1
+		end
+	end
+	if TotalBurnings >= 4 then
+		return
+	end
+	
+	local onFire = Instance.new("BoolValue")
+	onFire.Name = "Burning"
+	onFire.Parent = character.Effects
+	
+	local Duration = 5
+	local TagHumanoid = require(game.ServerScriptService.Modules.TagHumanoid)
+	
+	game.Debris:AddItem(onFire,Duration)
+	
+	sub(function()
+		for i = 1, Duration do wait(1)
+			TagHumanoid(character,target,{1,nil,nil,true},true,true)
+		end
+	end)
+end
+
+return module

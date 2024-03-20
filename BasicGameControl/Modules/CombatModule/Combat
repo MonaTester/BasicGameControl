@@ -1,0 +1,174 @@
+local module = {}
+function sub(...)
+	coroutine.wrap(...)()
+end
+local CombatModule = script
+return function(character,DMG)
+	local humanoid = character:WaitForChild("Humanoid")
+	local root = character:WaitForChild("HumanoidRootPart")
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	if character:FindFirstChild("CombatDisable") then
+		return
+	end
+	if character:FindFirstChildWhichIsA("Tool") then
+		return
+	end
+	if humanoid.Health < 1 then
+		return
+	end
+	local damage = 2
+	if DMG then
+		damage = DMG
+	end
+	
+	local Range = 3.5
+	local Diameter = 5
+	
+	local HitboxModule = require(game.ReplicatedStorage.Modules.HitboxModule)
+	local TagHumanoid = require(game.ServerScriptService.Modules.TagHumanoid)
+	local Combo = character:WaitForChild("Combo")
+	
+	local player = game.Players:GetPlayerFromCharacter(character)
+	local stats
+	if player then
+		stats = game.ReplicatedStorage[".stats"]:FindFirstChild(player.Name)
+		if stats.Alignment.Value == "Demon" then
+			damage = damage * 2
+		end
+	end
+	
+	local CDTime = .28
+	local AnimationSpeed = 1
+	local Delay = .2
+	
+	local CD = Instance.new("BoolValue")
+	CD.Name = "CombatDisable"
+	CD.Parent = character
+	
+	local Attack = Instance.new("BoolValue")
+	Attack.Name = "Attacking"
+	Attack.Parent = character
+	game.Debris:AddItem(Attack,CDTime + .2)
+	
+	local NoJump = Instance.new("NumberValue")
+	NoJump.Name = "NoJump"
+	NoJump.Parent = character.Effects
+	
+	Combo.Value = Combo.Value + 1
+	if Combo.Value > 4 then
+		Combo.Value = 1
+	end
+	local Temp = Combo.Value
+	sub(function()
+		wait(.9)
+		if Combo.Value == Temp then
+			Combo.Value = 0
+		end
+	end)
+	
+	local AnimationFolder = CombatModule.NormalCombat
+	if stats then
+		if stats.FightingClass.Value == "BoarFighting" then
+			AnimationFolder = CombatModule.BoarFighting
+		end
+	end
+	
+	local Anim = humanoid:LoadAnimation(AnimationFolder:FindFirstChild("Punch"..Combo.Value))
+	Anim:Play()
+	Anim:AdjustSpeed(1.25)
+	
+	if Combo.Value == 4 then
+		CDTime = 1
+		Range = 3.5
+		sub(function()
+			wait(.3)
+			humanoid.WalkSpeed = 12
+			wait(.7)
+			humanoid.WalkSpeed = character:WaitForChild("BaseSpeed").Value
+		end)
+	end
+	wait(0.05)
+	game.Debris:AddItem(CD, CDTime)
+	game.Debris:AddItem(NoJump,CDTime + .2)
+	root.Swing:Play()
+	wait(Delay)
+	for a = 1, 2 do
+	if character:FindFirstChild("Stunned") then
+		return
+	end
+	local targets = HitboxModule(character,Range,Diameter)
+	for i = 1, #targets do
+		if character:FindFirstChild("Stunned") then
+			break
+		end
+	if targets[i] and not character:FindFirstChild("Stunned") then
+		local target = targets[i]
+		local eroot = target.HumanoidRootPart
+		local ehum = target.Humanoid
+		local playStun
+		for i, v in pairs(eroot:GetChildren()) do
+			if v.ClassName == "BodyVelocity" then
+				v:Destroy()
+			end
+		end
+		
+		local d = (eroot.Position - root.Position).unit
+		
+		local push = Instance.new("BodyVelocity")
+		push.MaxForce = Vector3.new(1,0,1) * 30000
+		push.Velocity = d * 16
+		push.Parent = eroot
+		
+		local pull = Instance.new("BodyVelocity")
+		pull.MaxForce = Vector3.new(1,0,1) * 30000
+		pull.Velocity = d * 16
+		pull.Parent = root
+		
+		if target:FindFirstChild("Blocking") then
+			if ((eroot.Position + eroot.CFrame.lookVector * -Range) - root.Position).magnitude <= Diameter then
+				wait()
+				if target:FindFirstChild("Blocking") then
+					target:FindFirstChild("Blocking"):Destroy()
+				end
+			else
+				
+			game.Debris:AddItem(push, .23)	
+			game.Debris:AddItem(pull, .23)	
+			
+				TagHumanoid(character,target,{damage, .4}, playStun)
+				return
+			end
+		end
+		eroot.Hit:Emit(1)
+		
+		if player then
+			local stats = game.ReplicatedStorage[".stats"]:WaitForChild(player.Name)
+			if game:GetService("ReplicatedStorage").events:FindFirstChild("doubleExperience") then
+				stats.FistExp.Value = stats.FistExp.Value + (3 * 2)
+			else
+				stats.FistExp.Value = stats.FistExp.Value + 3
+			end
+		end
+		
+		if Combo.Value == 4 then
+			push.Velocity = d * 150
+			game.Debris:AddItem(push, .15)
+			pull:Destroy()
+		else
+		game.Debris:AddItem(push, .23)	
+		game.Debris:AddItem(pull, .23)	
+		
+		end
+		
+		target.HumanoidRootPart:FindFirstChild("Smack"):Play()
+		TagHumanoid(character,target,{damage, .55}, playStun)
+	end
+	end
+	if targets[1] then
+		break
+	end
+	wait(.1)
+	end
+end

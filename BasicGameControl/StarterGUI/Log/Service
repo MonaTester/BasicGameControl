@@ -1,0 +1,32 @@
+local module = {}
+
+local gui = script.Console
+local outputtemplate = gui.Frame.ConsoleTemplate:Clone()
+
+local messages = {}
+game:GetService("LogService").MessageOut:Connect(function(msg,typ)
+	local tab = {msg,tostring(typ)}
+	table.insert(messages,tab)
+end)
+
+module.ClearConsole = function()
+	for a, b in pairs(gui.Frame:GetChildren()) do
+		if b.ClassName == "TextLabel" then
+			b:Destroy()
+		end
+	end
+end
+module.UpdateConsole = function()
+	local label = outputtemplate:Clone()
+	label.Text = "                                                                           "
+	label.Parent = gui.Frame
+	for a, b in pairs(messages) do
+		local output = b[1]
+		local typ = b[2]
+		local label = outputtemplate:Clone()
+		label.Text = "> " .. output
+		label.Parent = gui.Frame
+	end
+end
+
+return module
